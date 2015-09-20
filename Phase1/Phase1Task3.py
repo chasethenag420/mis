@@ -3,9 +3,10 @@ import sys
 import collections
 import numpy as np
 import colorsys as cs
+import helpers as hl
 from matplotlib import pyplot as plt
 import operator
-
+'''
 cit_red_component = 0
 cit_green_component = 0
 cit_blue_component = 0
@@ -25,7 +26,7 @@ color_model = "RGB"
 comp1 = "R"
 comp2 = "G"
 comp3 = "B"
-
+'''
 cit = -1
 cio = 0
 ciT = 1
@@ -39,8 +40,26 @@ y1 = 45
 y2 = 70
 small_value = 0.000000000001
 
+def get_color_values( first, second, third, color_model):
+  if color_model == "RGB":
+    return (first,second,third)
+  elif color_model == "XYZ":
+    return hl.xyz2rgb(first,second,third)
+  elif color_model == "Lab":
+    return hl.lab2rgb(first,second,third)
+  elif color_model == "YUV":
+    return hl.yuv2rgb(first,second,third)
+  elif color_model == "YCbCr":
+    return hl.ycbcr2rgb(first,second,third)
+  elif color_model == "YIQ":
+    return hl.yiq2rgb(first,second,third)
+  elif color_model == "HSL":
+    return hl.hsl2rgb(first,second,third)
+  elif color_model == "HSV":
+    return hl.hsv2rgb(first,second,third)
+  else :
+    return (first,second,third)
 
-'''
 color_model = ""
 comp1 = ""
 comp2 = ""
@@ -102,24 +121,24 @@ else :
 
 
 print "You have selected " + color_model + " Color Model\n"
-cit_red_component   = int(raw_input('Enter Component Cit ' + comp1 + ' Component: '))  #beginning of if block
-cit_green_component = int(raw_input('Enter Component Cit ' + comp2 + ' Component: '))
-cit_blue_component  = int(raw_input('Enter Component Cit ' + comp3 + ' Component: '))
+cit_red_component   = float(raw_input('Enter Component Cit ' + comp1 + ' Component: '))  #beginning of if block
+cit_green_component = float(raw_input('Enter Component Cit ' + comp2 + ' Component: '))
+cit_blue_component  = float(raw_input('Enter Component Cit ' + comp3 + ' Component: '))
 
 print 'cit( {0},{1},{2} )'.format( cit_red_component, cit_green_component, cit_blue_component )
-cio_red_component   = int(raw_input('Enter Component Cio ' + comp1 + ' Component: '))
-cio_green_component = int(raw_input('Enter Component Cio ' + comp2 + ' Component: '))
-cio_blue_component  = int(raw_input('Enter Component Cio ' + comp3 + ' Component: '))
+cio_red_component   = float(raw_input('Enter Component Cio ' + comp1 + ' Component: '))
+cio_green_component = float(raw_input('Enter Component Cio ' + comp2 + ' Component: '))
+cio_blue_component  = float(raw_input('Enter Component Cio ' + comp3 + ' Component: '))
 
 print 'cio( {0},{1},{2} )'.format( cio_red_component, cio_green_component, cio_blue_component )
-ciT_red_component   = int(raw_input('Enter Component CiT ' + comp1 + ' Component: '))
-ciT_green_component = int(raw_input('Enter Component CiT ' + comp2 + ' Component: '))
-ciT_blue_component  = int(raw_input('Enter Component CiT ' + comp3 + ' Component:'))
+ciT_red_component   = float(raw_input('Enter Component CiT ' + comp1 + ' Component: '))
+ciT_green_component = float(raw_input('Enter Component CiT ' + comp2 + ' Component: '))
+ciT_blue_component  = float(raw_input('Enter Component CiT ' + comp3 + ' Component:'))
 
 print 'ciT( {0},{1},{2} )'.format( ciT_red_component, ciT_green_component, ciT_blue_component ) #end of if block
 
 num_of_bits = int( raw_input( 'Enter the Number of bits <b>:' ) )
-'''
+
 total_num_of_color_instances        = 2 ** num_of_bits
 
 num_of_color_instances_in_each_side = total_num_of_color_instances / 2
@@ -167,28 +186,33 @@ if blue_high_partition_size != 0 :
 else :
   blue_high_patitions = np.ones(num_of_color_instances_in_each_side+1) * ciT_blue_component
 
+red_partitions        = np.concatenate([red_low_patitions,red_high_patitions[1:]])[0:total_num_of_color_instances+1]
+green_partitions      = np.concatenate([green_low_patitions,green_high_patitions[1:]])[0:total_num_of_color_instances+1]
+blue_partitions       = np.concatenate([blue_low_patitions,blue_high_patitions[1:]])[0:total_num_of_color_instances+1]
+# print red_partitions
+# print green_partitions
+# print blue_partitions
+
 # print red_low_patitions
 # print red_high_patitions
 # print green_low_patitions
 # print green_high_patitions
 # print blue_low_patitions
 # print blue_high_patitions
-red_partitions        = np.concatenate([red_low_patitions,red_high_patitions[1:]])
-green_partitions      = np.concatenate([green_low_patitions,green_high_patitions[1:]])
-blue_partitions       = np.concatenate([blue_low_patitions,blue_high_patitions[1:]])
-# print red_partitions
-# print green_partitions
-# print blue_partitions
+
 #Opencv uses BGR so handle it as special case
 if color_model != "RGB" :
   color_map_partitions  = np.r_[red_partitions[None,:],green_partitions[None,:],blue_partitions[None,:]]
+  color_map_partitions  = color_map_partitions.transpose()
 else :
   color_map_partitions  = np.r_[blue_partitions[None,:],green_partitions[None,:],red_partitions[None,:]]
+  color_map_partitions  = color_map_partitions.transpose().astype(int)
 
-color_map_partitions  = color_map_partitions.transpose().astype(int)
+
+
 color_map = {}
 color_map_bin_ranges = {}
-print color_map_partitions
+
 for idx, partition in enumerate(partitions) :  
   if idx < len(partitions) -1 :
     current_partition = (color_map_partitions[idx]/2)
@@ -196,9 +220,7 @@ for idx, partition in enumerate(partitions) :
     color_map[idx+1] = tuple(np.add(current_partition, next_partition) )
     color_map_bin_ranges[idx+1] = '({0},{1})'.format(partition,partition + partition_size)
 sortedColorList = sorted(color_map.items())
-print sortedColorList
 sortedBinList = sorted(color_map_bin_ranges.items())
-print sortedBinList
 
 file_name = '{0}_{1}-{2}-{3}_{4}-{5}-{6}_{7}-{8}-{9}_{10}.txt'.format(color_model,cit_red_component,cit_green_component,cit_blue_component,cio_red_component,cio_green_component,cio_blue_component,ciT_red_component,ciT_green_component,ciT_blue_component,num_of_bits)
 file_handle = open(file_name,'w')
@@ -207,11 +229,10 @@ bins_file_name = '{0}_{1}-{2}-{3}_{4}-{5}-{6}_{7}-{8}-{9}_{10}.txt_bins'.format(
 bins_file_handle = open(bins_file_name,'w')
 
 for idx, elem in sortedColorList:
-  #cv2.rectangle(blank_image,(perm_X1,y1),(perm_X2,y2), tuple(i * 255 for i in cs.hsv_to_rgb(elem[0],elem[1]/100.0,elem[2]/100.0)), -1, 4 )
-  cv2.rectangle(blank_image,(perm_X1,y1),(perm_X2,y2), (elem[0],elem[1],elem[2]), -1, 4 )
+  cv2.rectangle(blank_image,(perm_X1,y1),(perm_X2,y2), get_color_values(elem[0],elem[1],elem[2],color_model), -1, 4 )
   cv2.putText(blank_image, str(sortedBinList[idx-1][1]), (perm_X2+50, (y1+y2)/2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
   y1 = y2
-  y2 += 30
+  y2 += 20
   
 bins_file_handle.write("{0}\n".format(num_of_bits))
 for item in sortedBinList:
@@ -223,117 +244,6 @@ for color in sortedColorList:
 file_handle.close()
 
 cv2.imshow(' Frame',blank_image) 
-# if color_model == "RGB":
-#   cv2.imshow(color_model + ' Frame',blank_image)  
-# elif color_model == "XYZ":
-#   cv2.imshow(color_model + ' Frame',cv2.cvtColor(blank_image, cv2.COLOR_BGR2XYZ))
-# elif color_model == "Lab":
-#   cv2.imshow(color_model + ' Frame',cv2.cvtColor(blank_image, cv2.COLOR_BGR2Lab))
-# elif color_model == "YUV":
-#   cv2.imshow(color_model + ' Frame',cv2.cvtColor(blank_image, cv2.COLOR_BGR2YUV))
-# elif color_model == "YCbCr":
-#   cv2.imshow(color_model + ' Frame',cv2.cvtColor(blank_image, cv2.COLOR_BGR2YCrCb))
-# elif color_model == "YIQ":
-#   #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-#   #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-#   #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-#   #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-#   #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-#   #TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-#   cv2.imshow(color_model + ' Frame',cv2.cvtColor(blank_image, cv2.COLOR_BGR2XYZ))
-# elif color_model == "HSL":
-#   cv2.imshow(color_model + ' Frame',cv2.cvtColor(blank_image, cv2.COLOR_BGR2HLS))
-# elif color_model == "HSV":
-#   cv2.imshow(color_model + ' Frame',cv2.cvtColor(blank_image, cv2.COLOR_BGR2HSV))
-
-#-----------------------------------------------------------------------
-# if color_model == "RGB":
-
-#   img = cv2.imread('whiteImage.png', 1) #1 is for RGB color model, < 1 is for a specified color model
-#   #cvtColor module can be used to change the color model
-#   plt.imshow(img)
-#   #plt.imshow(img, cmap='gray', interpolation='bicubic')
-#   plt.xticks([]), plt.yticks([]) # to hide tick values on X and Y axis
-#   plt.colorbar()
-
-#   print "\n\n\n"
-
-#   perm_X1 = 80
-#   perm_X2 = 200
-#   y1 = 45
-#   y2 = 70
-
-#   for elem in sortedColorList:
-
-#     print elem[1]
-
-#     cv2.rectangle(img,(perm_X1,y1),(perm_X2,y2),elem[1],-1) #-1 is to fill the rectangle
-#     y1 += 35
-#     y2 += 35
-
-#   y1 = 35
-#   y2 = 45
-#   y3 = 25
-#   y4 = 35
-
-#   for elem in sortedColorList:
-#     cv2.putText(img, str(elem[0]), (400, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
-#     cv2.rectangle(img,(465,y3),(475,y4),elem[1],-1) #-1 is to fill the rectangle
-#     y1 += 30
-#     y2 += 30
-#     y3 += 30
-#     y4 += 30
-
-#   plt.show()
-
-# else:
-
-#   #blank_image = np.zeros((height,width,3), np.uint8)
-
-#   #blank_image[:,0:0.5*width] = (255,0,0)      # (B, G, R)
-#   #blank_image[:,0.5*width:width] = (0,255,0)
-
-
-#   #img = cv2.imread('whiteImage.png', 1) #1 is for RGB color model, < 1 is for a specified color model
-#   #cvtColor module can be used to change the color model
-
-#   img = cv2.imread('whiteImage.png', -1) #1 is for RGB color model, < 1 is for a specified color model
-#   #cvtColor module can be used to change the color model
-#   #plt.imshow(img)
-#   plt.imshow(img, cmap='seismic')
-#   plt.xticks([]), plt.yticks([]) # to hide tick values on X and Y axis
-#   plt.colorbar()
-
-#   print "\n\n\n"
-
-#   perm_X1 = 80
-#   perm_X2 = 200
-#   y1 = 45
-#   y2 = 70
-
-#   for elem in sortedColorList:
-
-#     print elem[1]
-
-#     cv2.rectangle(img,(perm_X1,y1),(perm_X2,y2),elem[1],-1) #-1 is to fill the rectangle
-#     y1 += 35
-#     y2 += 35
-
-#   y1 = 35
-#   y2 = 45
-#   y3 = 25
-#   y4 = 35
-
-#   for elem in sortedColorList:
-#     cv2.putText(img, str(elem[0]), (400, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
-#     cv2.rectangle(img,(465,y3),(475,y4),elem[1],-1) #-1 is to fill the rectangle
-#     y1 += 30
-#     y2 += 30
-#     y3 += 30
-#     y4 += 30
-
-#   plt.show()
-#   plt.colorbar()
 
 c = cv2.waitKey(0)
 if 'q' == chr(c & 255):
