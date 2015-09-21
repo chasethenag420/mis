@@ -6,8 +6,7 @@ import colorsys as cs
 import helpers as hl
 import os
 
-
-
+# Used to show input prompt component names
 def get_user_color_model_components(color_model_code) :
   if color_model_code == '1':
     color_model = "RGB"
@@ -54,12 +53,14 @@ def get_user_color_model_components(color_model_code) :
     sys.exit(1)
   return (color_model, comp1, comp2, comp3)
 
+#Used to get input from command prompt for color instances
 def get_color_comp_from_user(prefix,components):
   first = float(raw_input('Enter {0} {1} Component: '.format(prefix, components[0])))
   second = float(raw_input('Enter {0} {1} Component: '.format(prefix, components[1])))
   third = float(raw_input('Enter {0} {1} Component: '.format(prefix, components[2]))) 
   return (first,second,third)
 
+# Splits the color instances into equal partitions from low value to mid to high values and returns it
 def get_partitions(low, mid, high, total_num_of_partitions):
   low_partitions = None
   high_partitions = None
@@ -79,6 +80,7 @@ def get_partitions(low, mid, high, total_num_of_partitions):
   partitions = np.concatenate([low_partitions,high_partitions[1:]])[0:total_num_of_partitions+1]
   return partitions
 
+# splits the range -1 to 1  into equal width partitions
 def get_partitions_normalized(low,high,no_of_partitions):
   partition_size = ( high - low ) / float(no_of_partitions)
   if partition_size != 0 :
@@ -87,7 +89,7 @@ def get_partitions_normalized(low,high,no_of_partitions):
     partitions = np.ones(no_of_partitions+1) * low
   return partitions
 
-
+# Creates the colormap values and associates to bins range
 def genereate_colormap_and_bins(partitions,color_map_partitions,partition_size):
   color_map = {}
   color_map_bin_ranges = {}
@@ -100,6 +102,7 @@ def genereate_colormap_and_bins(partitions,color_map_partitions,partition_size):
       color_map_bin_ranges[idx+1] = '({0},{1})'.format(partition,partition + partition_size)
   return (color_map,color_map_bin_ranges)
 
+# saves the colormap and bins into a file and returns the image
 def save_colormap_and_bins(colormap_bins,filename,image,color_model,num_of_bits):
   
   perm_X1 = 80
@@ -122,11 +125,14 @@ def save_colormap_and_bins(colormap_bins,filename,image,color_model,num_of_bits)
   print "ColorMap is saved in: "+file_name
   return image
 
+# creates a empty image with all white pixels for given height and width
 def create_blank_image(height,width):
   blank_image = np.zeros((height,width,3), np.uint8)
   blank_image[:,:] = (255,255,255)
   return blank_image
 
+# The entry point which prompts for user input and controls the execution visualizes the colormap created and waits for user to press
+# a key to closes all the windows
 def main():
 
   cit_low = -1
@@ -135,6 +141,7 @@ def main():
     
   small_value = 0.000000000001
   current_working_dir = os.getcwd()
+  # Read the color mode from user input
   color_model_code = raw_input("""Select a Color Model:\n
   Press 1 for RGB \n
   Press 2 for XYZ \n
@@ -154,10 +161,12 @@ def main():
 
   print "You have selected " + color_model + " Color Model\n"
 
+  # Read the input color instance from user
   cit = get_color_comp_from_user('cit', (comp1,comp2,comp3))
   ci0 = get_color_comp_from_user('ci0', (comp1,comp2,comp3))
   ciT = get_color_comp_from_user('ciT', (comp1,comp2,comp3))
   
+  # calculate total number of color instances to be created
   num_of_bits = int( raw_input( 'Enter the Number of bits <b>:' ) )
   total_num_of_color_instances = 2 ** num_of_bits
 
@@ -165,6 +174,7 @@ def main():
   partition_size = ( ciT_high - cit_low ) / float(total_num_of_color_instances)
   partitions = get_partitions_normalized(cit_low,ciT_high,total_num_of_color_instances)
 
+  # get the parititon ranges for each component
   first_partitions = get_partitions(cit[0], ci0[0], ciT[0],total_num_of_color_instances)
   second_partitions = get_partitions(cit[1], ci0[1], ciT[1],total_num_of_color_instances)
   third_partitions = get_partitions(cit[2], ci0[2], ciT[2],total_num_of_color_instances)
@@ -176,16 +186,25 @@ def main():
   else :
     color_map_partitions  = np.r_[third_partitions[None,:],second_partitions[None,:],first_partitions[None,:]]
     color_map_partitions  = color_map_partitions.transpose().astype(int)
+  # create a blank image dimensions based on the number of color instances to be displayed
+  # multiple of 21 as each instance occupy atleast 21 pixel in height
   height = total_num_of_color_instances * 21
   width = 1080
   image = create_blank_image(height,width)
+  
+  # save the color map to file with name created from colormodel name, color instance values and number of bits
   filename = '{0}_{1}-{2}-{3}_{4}-{5}-{6}_{7}-{8}-{9}_{10}.txt'.format(color_model,cit[0],cit[1],cit[2],ci0[0],ci0[1],ci0[2],ciT[0],ciT[1],ciT[2],num_of_bits)
   color_map_filename = '{0}\{1}'.format(current_working_dir, filename)
   colormap_bins = genereate_colormap_and_bins(partitions,color_map_partitions,partition_size)
   image = save_colormap_and_bins(colormap_bins,color_map_filename,image,color_model,num_of_bits)
+  # create named window to display image
   cv2.namedWindow('ColorMap in '+color_model, cv2.WINDOW_AUTOSIZE)
+  
+  # display image to user
   cv2.imshow('ColorMap in '+color_model,image) 
+  # save image to disc in current working directory
   cv2.imwrite('%s.jpg' % filename,image)
+  # wait for user to press some key to close windows and exit
   c = cv2.waitKey(0)
   if 'q' == chr(c & 255):
     cv2.destroyAllWindows()

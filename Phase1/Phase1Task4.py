@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import helpers as hl
 
+# gives the image at the given frame number for the specified video file
 def get_frame(full_path,frame_number):
   image = []
   success = False
@@ -21,6 +22,7 @@ def get_frame(full_path,frame_number):
     print "Cannot read video capture object from %s. Quitting..." % videosource
     sys.exit(1)
 
+# convert given frame to grayscale image and save to disc
 def get_frame_and_save_as_grayscale(full_path,frame_number):
   gray_image = cv2.cvtColor(get_frame(full_path,frame_number),cv2.COLOR_BGR2GRAY)
   cv2.imwrite('file1_%d_gray.jpg' % frame_number,gray_image)
@@ -28,6 +30,7 @@ def get_frame_and_save_as_grayscale(full_path,frame_number):
   print 'Extracted Grayscale frame {0} saved as <file1_{0}_gray.jpg>'.format(frame_number)
   return gray_image
 
+# Read the color map saved in task3 and give back number of bits, color model and colormap
 def read_color_map(colormap_file_name):
   num_of_bits = 0
   color_map={}
@@ -42,6 +45,7 @@ def read_color_map(colormap_file_name):
       color_map[int(color_index[0])]=color_index[1]
   return (num_of_bits,color_map,color_model)
 
+# Creates a blank image and sets the pixels based on the grayscale differences calculated and apply given color_map and returns the image
 def apply_color_map(rescaled_grayscale_diff, color_map,partitions,color_model):
   rows,cols=rescaled_grayscale_diff.shape
   height = rows
@@ -55,6 +59,7 @@ def apply_color_map(rescaled_grayscale_diff, color_map,partitions,color_model):
       blank_image[row][col] = np.array(color_instance).astype(np.ndarray)
   return blank_image
 
+# gives the array with values of equal range for given bits
 def get_partitions_normalized(low,high,num_of_bits):
   total_num_of_color_instances = 2 ** num_of_bits
   partition_size = ( high - low ) / float(total_num_of_color_instances)
@@ -64,6 +69,9 @@ def get_partitions_normalized(low,high,num_of_bits):
     partitions = np.ones(total_num_of_color_instances+1) * low
   return partitions
 
+# The entry point which prompts for user input to get video file name, colormap file name, frame numbers.
+# Controls the program execution calculates the graysacle differences and visualizes the image that got created using the color map chosen
+# waits for user to press a key to clean and exit the program
 def main():
   cit = -1
   cio = 0
