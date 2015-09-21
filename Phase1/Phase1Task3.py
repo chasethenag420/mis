@@ -6,25 +6,7 @@ import colorsys as cs
 import helpers as hl
 import os
 
-def get_color_values_in_rgb( first, second, third, color_model):
-  if color_model == "RGB":
-    return (first,second,third)
-  elif color_model == "XYZ":
-    return hl.xyz2rgb(first,second,third)
-  elif color_model == "Lab":
-    return hl.lab2rgb(first,second,third)
-  elif color_model == "YUV":
-    return hl.yuv2rgb(first,second,third)
-  elif color_model == "YCbCr":
-    return hl.ycbcr2rgb(first,second,third)
-  elif color_model == "YIQ":
-    return hl.yiq2rgb(first,second,third)
-  elif color_model == "HSL":
-    return hl.hsl2rgb(first,second,third)
-  elif color_model == "HSV":
-    return hl.hsv2rgb(first,second,third)
-  else :
-    return (first,second,third)
+
 
 def get_user_color_model_components(color_model_code) :
   if color_model_code == '1':
@@ -128,11 +110,11 @@ def save_colormap_and_bins(colormap_bins,filename,image,color_model,num_of_bits)
   file_name = '{0}'.format(filename)
   file_handle = open(file_name,'w')
   sortedBinList = sorted(colormap_bins[1].items())
-  file_handle.write("{0}\n".format(num_of_bits))
+  file_handle.write("{0};{1}\n".format(num_of_bits,color_model))
   for idx, elem in sorted(colormap_bins[0].items()):
     bin=sortedBinList[idx-1]
     file_handle.write("{0}:{1},{2},{3}:{4}\n".format(idx,str(elem[0]),str(elem[1]),str(elem[2]),str(bin[1])))
-    cv2.rectangle(image,(perm_X1,y1),(perm_X2,y2), get_color_values_in_rgb(elem[0],elem[1],elem[2],color_model), -1, 4 )
+    cv2.rectangle(image,(perm_X1,y1),(perm_X2,y2), hl.get_color_values_in_rgb(elem[0],elem[1],elem[2],color_model), -1, 4 )
     cv2.putText(image, str(bin[1]), (perm_X2+50, y1/2+y2/2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
     y1 = y2
     y2 += 20

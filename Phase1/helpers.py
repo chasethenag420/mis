@@ -3,6 +3,26 @@ import numpy as np
 from colormath.color_objects import XYZColor, sRGBColor, LabColor
 from colormath.color_conversions import convert_color
 
+def get_color_values_in_rgb( first, second, third, color_model):
+  if color_model == "RGB":
+    return (first,second,third)
+  elif color_model == "XYZ":
+    return xyz2rgb(first,second,third)
+  elif color_model == "Lab":
+    return lab2rgb(first,second,third)
+  elif color_model == "YUV":
+    return yuv2rgb(first,second,third)
+  elif color_model == "YCbCr":
+    return ycbcr2rgb(first,second,third)
+  elif color_model == "YIQ":
+    return yiq2rgb(first,second,third)
+  elif color_model == "HSL":
+    return hsl2rgb(first,second,third)
+  elif color_model == "HSV":
+    return hsv2rgb(first,second,third)
+  else :
+    return (first,second,third)
+
 def xyz2rgb(x,y,z):
   "XYZ: x [0,95.047]  y[0,100.000]  z[0,108.883]"
   xyz = XYZColor(x/100.0, y/100.0, z/100.0,observer='2',illuminant='d65')
