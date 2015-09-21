@@ -2,95 +2,104 @@ import sys
 import cv2
 import numpy as np
 
-video_dir = raw_input("Enter the path of the video files:\n")
-def getFileContentsAsString( path ) :
+def get_frame(full_path,frame_number):
+  image = []
+  success = False
+  videosource = cv2.VideoCapture(full_path)
+  if videosource.isOpened() :
+    for i in range( 1, frame_number + 1 ) :
+      success,image = videosource.read()
 
-  content = None
-  try :
-    ratings_file = open( path, 'r' )
-    content = ratings_file.read()
-    ratings_file.close()    
-  except BaseException, e:
-    print 'Exception caught while reading file: %s' % e
+    if success :
+      videosource.release()
+      return image
+    else :
+      print "Cannot read video capture object from %s. Quitting..." % videosource
+      sys.exit(1)
+  else :
+    print "Cannot read video capture object from %s. Quitting..." % videosource
+    sys.exit(1)
 
-  return content
+def get_frame_and_save_as_grayscale(full_path,frame_number):
+  gray_image = cv2.cvtColor(get_frame(full_path,frame_number),cv2.COLOR_BGR2GRAY)
+  cv2.imwrite('file1_%d_gray.jpg' % frame_number,gray_image)
+  cv2.imshow('Frame {0}'.format(frame_number),gray_image)
+  print 'Extracted Grayscale frame {0} saved as <file1_{0}_gray.jpg>'.format(frame_number)
+  return gray_image
 
-cit = -1
-cio = 0
-ciT = 1
-small_value = 0.000000000001
-max_value = 255
+def read_color_map(colormap_file_name):
+  num_of_bits = 0
+  color_map={}
+  color_map_file_handle = open( colormap_file_name, 'r' )
+  for line in color_map_file_handle:
+    if not ":" in line :
+      num_of_bits = int(line)
+    else :
+      color_index=line.rstrip().split(':')
+      color_map[int(color_index[0])]=color_index[1]
+  return (num_of_bits,color_map)
 
-print 'All the videos will be read from %s directory' % video_dir
+def apply_color_map(rescaled_grayscale_diff, color_map,partitions):
+  rows,cols=rescaled_grayscale_diff.shape
+  height = rows
+  width = cols
+  blank_image = np.zeros((height,width,3), np.uint8)
+  
+  for row in range(rows):
+    row_bin_indexes = np.digitize(rescaled_grayscale_diff[row],partitions)
+    for col in range(cols):
+      color_instance = list( int(round(float(i))) for i in color_map[row_bin_indexes[col]].split(',')) 
+      blank_image[row][col] = np.array(color_instance).astype(np.ndarray)
+  return blank_image
 
-video_file_name = raw_input("Enter the video file name:\n")
-video_frame_rate = int(raw_input("Enter the video frame rate:\n"))
-frame_number_1 = int(raw_input("Enter the 1st frame number:\n"))
-frame_number_2 = int(raw_input("Enter the 2nd frame number:\n"))
-colormap_file_name = raw_input("Enter the color map file name:\n")
+def get_partitions_normalized(low,high,num_of_bits):
+  total_num_of_color_instances = 2 ** num_of_bits
+  partition_size = ( high - low ) / float(total_num_of_color_instances)
+  if partition_size != 0 :
+    partitions = np.arange(low, high+partition_size, partition_size)[0:total_num_of_color_instances+1]
+  else :
+    partitions = np.ones(total_num_of_color_instances+1) * low
+  return partitions
 
-print 'Extracting the grayscale for frame {0}  and {1}'.format(frame_number_1,frame_number_2)
+def main():
+  cit = -1
+  cio = 0
+  ciT = 1
+  small_value = 0.000000000001
+  max_value = 255
+  video_dir = raw_input("Enter the path of the video files:\n")
+  print 'All the videos will be read from %s directory' % video_dir
 
-full_path = r'{0}\{1}'.format(video_dir,video_file_name)
-print 'full path %s' % full_path
-videosource = cv2.VideoCapture(full_path)
-image = []
-for i in range( 1, frame_number_1 + 1 ) :
-  success,image = videosource.read(i)
+  video_file_name = raw_input("Enter the video file name:\n")
+  video_frame_rate = int(raw_input("Enter the video frame rate:\n"))
+  frame_number_1 = int(raw_input("Enter the 1st frame number:\n"))
+  frame_number_2 = int(raw_input("Enter the 2nd frame number:\n"))
+  colormap_file_name = raw_input("Enter the color map file name:\n")
 
-cv2.imwrite("frame%d.jpg" % 1, image)
+  print 'Extracting the grayscale for frame {0}  and {1}'.format(frame_number_1,frame_number_2)
 
-for i in range( 1, abs(frame_number_1 - frame_number_2) + 1 ) :
-  success,image = videosource.read(i)
+  full_path = r'{0}\{1}'.format(video_dir,video_file_name)
 
-cv2.imwrite("frame%d.jpg" % 2, image)
-gray_image1 = cv2.imread("frame%d.jpg" % 1, cv2.IMREAD_GRAYSCALE)
-gray_image2 = cv2.imread("frame%d.jpg" % 2, cv2.IMREAD_GRAYSCALE)
-cv2.imwrite('file1_%d_gray.jpg' % frame_number_1,gray_image1)
-cv2.imwrite('file1_%d_gray.jpg' % frame_number_2,gray_image2)
+  gray_image1 = get_frame_and_save_as_grayscale(full_path,frame_number_1)
+  gray_image2 = get_frame_and_save_as_grayscale(full_path,frame_number_2)
 
-print 'Extracted Grayscale saves as <file1_{0}_gray.jpg> and <file1_{1}_gray.jpg>'.format(frame_number_1,frame_number_2)
+  print 'Determining the Grayscale difference image'
+  grayscale_diff = cv2.subtract(gray_image2.astype(np.int16),gray_image1.astype(np.int16))
+  print 'Computation of grayscale difference image done'
 
-cv2.imshow('Frame 1',cv2.imread('file1_%d_gray.jpg' % frame_number_1))
-cv2.imshow('Frame 2',cv2.imread('file1_%d_gray.jpg' % frame_number_2))
+  rescaled_grayscale_diff = grayscale_diff / float(max_value)  
+  print 'Rescaling of grayscale difference image done'
 
-print 'Determining the Grayscale difference image'
-grayscale_diff = cv2.subtract(gray_image2.astype(np.int16),gray_image1.astype(np.int16))
+  num_of_bits,color_map = read_color_map(colormap_file_name)
+  partitions = get_partitions_normalized(cit,ciT,num_of_bits)
+  recolored_image = apply_color_map(rescaled_grayscale_diff, color_map,partitions)
+  print 'Recoloring of Grayscale Difference image done'
 
-print 'Computation of grayscale difference image done'
+  print 'Check out the visualization'
+  cv2.imshow('Recolored Grayscale Difference',recolored_image) 
 
-rescaled_grayscale_diff = grayscale_diff / float(max_value)
-print 'Rescaling of grayscale difference image done'
+  c = cv2.waitKey(0)
+  if 'q' == chr(c & 255):
+    cv2.destroyAllWindows()
 
-rows,cols=rescaled_grayscale_diff.shape
-
-ratings_file = open( colormap_file_name+'_bins', 'r' )
-num_of_bits = int(ratings_file.readline())
-ratings_file.close()
-color_map={}
-color_map_file_handle = open( colormap_file_name, 'r' )
-for line in color_map_file_handle:
-  color_index=line.rstrip().split(':')
-  color_map[int(color_index[0])]=color_index[1]
-total_num_of_color_instances = 2 ** num_of_bits
-partition_size = ( ciT - cit ) / float(total_num_of_color_instances)
-partitions = np.arange(cit, ciT+small_value, partition_size)
-
-height = rows
-width = cols
-blank_image = np.zeros((height,width,3), np.uint8)
-
-for row in range(rows):
-  row_bin_indexes = np.digitize(rescaled_grayscale_diff[row],partitions)
-  for col in range(cols):
-    color_instance = list( int(round(float(i))) for i in color_map[row_bin_indexes[col]].split(',')) 
-    blank_image[row][col] = np.array(color_instance).astype(np.ndarray)
-
-print 'Recoloring of Grayscale Difference image done'
-
-print 'Check out the visualization'
-cv2.imshow(' Frame',blank_image) 
-
-c = cv2.waitKey(0)
-if 'q' == chr(c & 255):
-  cv2.destroyAllWindows()
+main()
