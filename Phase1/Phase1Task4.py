@@ -1,7 +1,9 @@
 import sys
 import cv2
 import numpy as np
+import helpers as hl
 
+# gives the image at the given frame number for the specified video file
 def get_frame(full_path,frame_number):
   image = []
   success = False
@@ -20,6 +22,7 @@ def get_frame(full_path,frame_number):
     print "Cannot read video capture object from %s. Quitting..." % videosource
     sys.exit(1)
 
+# convert given frame to grayscale image and save to disc
 def get_frame_and_save_as_grayscale(full_path,frame_number):
   gray_image = cv2.cvtColor(get_frame(full_path,frame_number),cv2.COLOR_BGR2GRAY)
   cv2.imwrite('file1_%d_gray.jpg' % frame_number,gray_image)
@@ -27,31 +30,36 @@ def get_frame_and_save_as_grayscale(full_path,frame_number):
   print 'Extracted Grayscale frame {0} saved as <file1_{0}_gray.jpg>'.format(frame_number)
   return gray_image
 
+# Read the color map saved in task3 and give back number of bits, color model and colormap
 def read_color_map(colormap_file_name):
   num_of_bits = 0
   color_map={}
   color_map_file_handle = open( colormap_file_name, 'r' )
   for line in color_map_file_handle:
     if not ":" in line :
-      num_of_bits = int(line)
+      line=line.rstrip().split(';')
+      num_of_bits = int(line[0])
+      color_model = str(line[1])
     else :
       color_index=line.rstrip().split(':')
       color_map[int(color_index[0])]=color_index[1]
-  return (num_of_bits,color_map)
+  return (num_of_bits,color_map,color_model)
 
-def apply_color_map(rescaled_grayscale_diff, color_map,partitions):
+# Creates a blank image and sets the pixels based on the grayscale differences calculated and apply given color_map and returns the image
+def apply_color_map(rescaled_grayscale_diff, color_map,partitions,color_model):
   rows,cols=rescaled_grayscale_diff.shape
   height = rows
   width = cols
   blank_image = np.zeros((height,width,3), np.uint8)
-  
   for row in range(rows):
     row_bin_indexes = np.digitize(rescaled_grayscale_diff[row],partitions)
     for col in range(cols):
-      color_instance = list( int(round(float(i))) for i in color_map[row_bin_indexes[col]].split(',')) 
+      color_instance = list(int(round(float(i))) for i in color_map[row_bin_indexes[col]].split(','))
+      color_instance =  hl.get_color_values_in_rgb(color_instance[0],color_instance[1],color_instance[2],color_model)
       blank_image[row][col] = np.array(color_instance).astype(np.ndarray)
   return blank_image
 
+# gives the array with values of equal range for given bits
 def get_partitions_normalized(low,high,num_of_bits):
   total_num_of_color_instances = 2 ** num_of_bits
   partition_size = ( high - low ) / float(total_num_of_color_instances)
@@ -61,6 +69,9 @@ def get_partitions_normalized(low,high,num_of_bits):
     partitions = np.ones(total_num_of_color_instances+1) * low
   return partitions
 
+# The entry point which prompts for user input to get video file name, colormap file name, frame numbers.
+# Controls the program execution calculates the graysacle differences and visualizes the image that got created using the color map chosen
+# waits for user to press a key to clean and exit the program
 def main():
   cit = -1
   cio = 0
@@ -71,7 +82,6 @@ def main():
   print 'All the videos will be read from %s directory' % video_dir
 
   video_file_name = raw_input("Enter the video file name:\n")
-  video_frame_rate = int(raw_input("Enter the video frame rate:\n"))
   frame_number_1 = int(raw_input("Enter the 1st frame number:\n"))
   frame_number_2 = int(raw_input("Enter the 2nd frame number:\n"))
   colormap_file_name = raw_input("Enter the color map file name:\n")
@@ -90,9 +100,9 @@ def main():
   rescaled_grayscale_diff = grayscale_diff / float(max_value)  
   print 'Rescaling of grayscale difference image done'
 
-  num_of_bits,color_map = read_color_map(colormap_file_name)
+  num_of_bits,color_map,color_model = read_color_map(colormap_file_name)
   partitions = get_partitions_normalized(cit,ciT,num_of_bits)
-  recolored_image = apply_color_map(rescaled_grayscale_diff, color_map,partitions)
+  recolored_image = apply_color_map(rescaled_grayscale_diff, color_map,partitions,color_model)
   print 'Recoloring of Grayscale Difference image done'
 
   print 'Check out the visualization'
