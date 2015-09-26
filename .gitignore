@@ -57,6 +57,7 @@ docs/_build/
 target/
 
 Phase1/sampleDataP1/*
+Phase1/sampleDataP2/*
 Phase1/*.jpg
 Phase1/*.txt
 Phase1/*.txt_bins
