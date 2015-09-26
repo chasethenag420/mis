@@ -116,8 +116,9 @@ def save_colormap_and_bins(colormap_bins,filename,image,color_model,num_of_bits)
   file_handle.write("{0};{1}\n".format(num_of_bits,color_model))
   for idx, elem in sorted(colormap_bins[0].items()):
     bin=sortedBinList[idx-1]
-    file_handle.write("{0}:{1},{2},{3}:{4}\n".format(idx,str(elem[0]),str(elem[1]),str(elem[2]),str(bin[1])))
-    cv2.rectangle(image,(perm_X1,y1),(perm_X2,y2), hl.get_color_values_in_rgb(elem[0],elem[1],elem[2],color_model), -1, 4 )
+    conv_elem=hl.get_color_values_in_color_model(elem[0],elem[1],elem[2],color_model)
+    file_handle.write("{0}:{1},{2},{3}:{4}\n".format(idx,str(conv_elem[0]),str(conv_elem[1]),str(conv_elem[2]),str(bin[1])))
+    cv2.rectangle(image,(perm_X1,y1),(perm_X2,y2), (elem[0],elem[1],elem[2]), -1, 4 )
     cv2.putText(image, str(bin[1]), (perm_X2+50, y1/2+y2/2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, 255)
     y1 = y2
     y2 += 20
@@ -165,6 +166,10 @@ def main():
   cit = get_color_comp_from_user('cit', (comp1,comp2,comp3))
   ci0 = get_color_comp_from_user('ci0', (comp1,comp2,comp3))
   ciT = get_color_comp_from_user('ciT', (comp1,comp2,comp3))
+
+  cit = hl.get_color_values_in_bgr( cit[0], cit[1], cit[2],color_model )
+  ci0 = hl.get_color_values_in_bgr( ci0[0], ci0[1], ci0[2],color_model )
+  ciT = hl.get_color_values_in_bgr( ciT[0], ciT[1], ciT[2],color_model )
   
   # calculate total number of color instances to be created
   num_of_bits = int( raw_input( 'Enter the Number of bits <b>:' ) )
@@ -179,13 +184,9 @@ def main():
   second_partitions = get_partitions(cit[1], ci0[1], ciT[1],total_num_of_color_instances)
   third_partitions = get_partitions(cit[2], ci0[2], ciT[2],total_num_of_color_instances)
 
-  #Opencv uses BGR so handle it as special case
-  if color_model != "RGB" :
-    color_map_partitions  = np.r_[first_partitions[None,:],second_partitions[None,:],third_partitions[None,:]]
-    color_map_partitions  = color_map_partitions.transpose()
-  else :
-    color_map_partitions  = np.r_[third_partitions[None,:],second_partitions[None,:],first_partitions[None,:]]
-    color_map_partitions  = color_map_partitions.transpose().astype(int)
+  color_map_partitions  = np.r_[first_partitions[None,:],second_partitions[None,:],third_partitions[None,:]]
+  color_map_partitions  = color_map_partitions.transpose()
+  
   # create a blank image dimensions based on the number of color instances to be displayed
   # multiple of 21 as each instance occupy atleast 21 pixel in height
   height = total_num_of_color_instances * 21

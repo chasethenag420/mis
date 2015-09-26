@@ -4,25 +4,48 @@ from colormath.color_objects import XYZColor, sRGBColor, LabColor
 from colormath.color_conversions import convert_color
 
 # helper to call associated convertion function for given color mode and color instance
-def get_color_values_in_rgb( first, second, third, color_model):
+def get_color_values_in_bgr( first, second, third, color_model):
+  bgr=None
   if color_model == "RGB":
-    return (first,second,third)
+    bgr=(first,second,third)
   elif color_model == "XYZ":
-    return xyz2rgb(first,second,third)
+    bgr=xyz2rgb(first,second,third)    
   elif color_model == "Lab":
-    return lab2rgb(first,second,third)
+    bgr=lab2rgb(first,second,third)
   elif color_model == "YUV":
-    return yuv2rgb(first,second,third)
+    bgr=yuv2rgb(first,second,third)
   elif color_model == "YCbCr":
-    return ycbcr2rgb(first,second,third)
+    bgr=ycbcr2rgb(first,second,third)
   elif color_model == "YIQ":
-    return yiq2rgb(first,second,third)
+    bgr=yiq2rgb(first,second,third)
   elif color_model == "HSL":
-    return hsl2rgb(first,second,third)
+    bgr=hsl2rgb(first,second,third)
   elif color_model == "HSV":
-    return hsv2rgb(first,second,third)
+    bgr=hsv2rgb(first,second,third)
   else :
-    return (first,second,third)
+    bgr=(first,second,third)
+  return (bgr[2],bgr[1],bgr[0])
+
+# helper to call associated convertion function for given color mode and color instance
+def get_color_values_in_color_model( first, second, third, color_model):
+  if color_model == "RGB":
+    return (third,second,first)
+  elif color_model == "XYZ":
+    return rgb2xyz(third,second,first)
+  elif color_model == "Lab":
+    return rgb2lab(third,second,first)
+  elif color_model == "YUV":
+    return rgb2yuv(third,second,first)
+  elif color_model == "YCbCr":
+    return rgb2ycbcr(third,second,first)
+  elif color_model == "YIQ":
+    return rgb2yiq(third,second,first)
+  elif color_model == "HSL":
+    return rgb2hsl(third,second,first)
+  elif color_model == "HSV":
+    return rgb2hsv(third,second,first)
+  else :
+    return (third,second,first)
 
 # converts xyz color instace to rgb
 # input is unnormalized values
