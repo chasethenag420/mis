@@ -3,50 +3,84 @@ import numpy as np
 from colormath.color_objects import XYZColor, sRGBColor, LabColor
 from colormath.color_conversions import convert_color
 
-def get_color_values_in_rgb( first, second, third, color_model):
+# helper to call associated convertion function for given color mode and color instance
+def get_color_values_in_bgr( first, second, third, color_model):
+  bgr=None
   if color_model == "RGB":
-    return (first,second,third)
+    bgr=(first,second,third)
   elif color_model == "XYZ":
-    return xyz2rgb(first,second,third)
+    bgr=xyz2rgb(first,second,third)    
   elif color_model == "Lab":
-    return lab2rgb(first,second,third)
+    bgr=lab2rgb(first,second,third)
   elif color_model == "YUV":
-    return yuv2rgb(first,second,third)
+    bgr=yuv2rgb(first,second,third)
   elif color_model == "YCbCr":
-    return ycbcr2rgb(first,second,third)
+    bgr=ycbcr2rgb(first,second,third)
   elif color_model == "YIQ":
-    return yiq2rgb(first,second,third)
+    bgr=yiq2rgb(first,second,third)
   elif color_model == "HSL":
-    return hsl2rgb(first,second,third)
+    bgr=hsl2rgb(first,second,third)
   elif color_model == "HSV":
-    return hsv2rgb(first,second,third)
+    bgr=hsv2rgb(first,second,third)
   else :
-    return (first,second,third)
+    bgr=(first,second,third)
+  return (bgr[2],bgr[1],bgr[0])
 
+# helper to call associated convertion function for given color mode and color instance
+def get_color_values_in_color_model( first, second, third, color_model):
+  if color_model == "RGB":
+    return (third,second,first)
+  elif color_model == "XYZ":
+    return rgb2xyz(third,second,first)
+  elif color_model == "Lab":
+    return rgb2lab(third,second,first)
+  elif color_model == "YUV":
+    return rgb2yuv(third,second,first)
+  elif color_model == "YCbCr":
+    return rgb2ycbcr(third,second,first)
+  elif color_model == "YIQ":
+    return rgb2yiq(third,second,first)
+  elif color_model == "HSL":
+    return rgb2hsl(third,second,first)
+  elif color_model == "HSV":
+    return rgb2hsv(third,second,first)
+  else :
+    return (third,second,first)
+
+# converts xyz color instace to rgb
+# input is unnormalized values
 def xyz2rgb(x,y,z):
   "XYZ: x [0,95.047]  y[0,100.000]  z[0,108.883]"
   xyz = XYZColor(x/100.0, y/100.0, z/100.0,observer='2',illuminant='d65')
   rgb = convert_color(xyz, sRGBColor)
   return rgb.get_upscaled_value_tuple()
 
+# converts rgb color instace to xyz
+# input is unnormalized values
 def rgb2xyz(r,g,b):
   "RGB: R[0, 255] g[0, 255] b[0, 255]"
   rgb = sRGBColor(r/255.0, g/255.0, b/255.0)
   xyz = convert_color(rgb, XYZColor,target_illuminant='d65')
   return tuple(int(round(i*100)) for i in xyz.get_value_tuple())
 
+# converts lab color instace to rgb
+# input is unnormalized values
 def lab2rgb(l,a,b):
   "LAB: l[0, 100] a[-86.185, 98,254] b[-107.863, 94.482]"
   lab = LabColor(l, a, b)
   rgb = convert_color(lab, sRGBColor)
   return rgb.get_upscaled_value_tuple()
 
+# converts rgb color instace to lab
+# input is unnormalized values
 def rgb2lab(r,g,b):
   "RGB: R[0, 255] g[0, 255] b[0, 255]"
   rgb = sRGBColor(r/255.0, g/255.0, b/255.0)
   lab = convert_color(rgb, LabColor)
   return tuple(int(round(i)) for i in lab.get_value_tuple())
 
+# converts yuv color instace to rgb
+# input is unnormalized values
 def yuv2rgb(y,u,v):
   "YUV: Y [0.0, 255] - U [-127, 128] - V [-127, 128]"
   yuv=np.array([(y/255.0,),(u/255.0,),(v/255.0,)])
@@ -54,14 +88,17 @@ def yuv2rgb(y,u,v):
   rgb=np.dot(tranformation, yuv)
   return tuple(int(round(i*255)) for i in rgb)
 
+# converts rgb color instace to yuv
+# input is unnormalized values
 def rgb2yuv(r,g,b):
   "RGB: R[0, 255] g[0, 255] b[0, 255]"
   rgb=np.array([(r/255.0,),(g/255.0,),(b/255.0,)])
   tranformation=np.array([(0.299,0.587,0.114),(-0.147,-0.289,0.436),(0.615,-0.515,-0.100)])
   yuv=np.dot(tranformation, rgb)
   return tuple(int(round(i*255)) for i in yuv)
-  #return (int(round(yuv[0])), int(round(yuv[1])),int(round(yuv[2])))
 
+# converts rgb color instace to ycbcr
+# input is unnormalized values
 def rgb2ycbcr(r,g,b) :
   "RGB: R[0, 255] g[0, 255] b[0, 255]"
   rgb =np.array([(r,),(g,),(b,)])
@@ -70,6 +107,8 @@ def rgb2ycbcr(r,g,b) :
   ycbcr= np.dot(tranformation,rgb) + addition
   return tuple(int(round(i)) for i in ycbcr)
 
+# converts yccbcr color instace to rgb
+# input is unnormalized values
 def ycbcr2rgb(y,cb,cr):
   "YCbCr: Y [0, 255] - Cb [0, 255] - Cr [0, 255]"
   ycbcr=np.array([(y,),(cb-128,),(cr-128,)])
@@ -77,6 +116,8 @@ def ycbcr2rgb(y,cb,cr):
   rgb=np.dot(tranformation, ycbcr)
   return tuple(int(round(i)) for i in rgb)
 
+# converts rgb color instace to yiq
+# input is unnormalized values
 def rgb2yiq(r,g,b):
   "RGB: R[0, 255] g[0, 255] b[0, 255]"
   r = r/255.0
@@ -84,6 +125,8 @@ def rgb2yiq(r,g,b):
   b = b/255.0
   return tuple(int(round(i * 255)) for i in cs.rgb_to_yiq(r,g,b) )
 
+# converts yiq color instace to rgb
+# input is unnormalized values
 def yiq2rgb(y,i,q):
   "YIQ: Y [0.0, 255] - I [-127, 128] - Q [-127, 128]"
   y = y/255.0
@@ -91,7 +134,8 @@ def yiq2rgb(y,i,q):
   q = q/255.0
   return tuple(int(round(i * 255)) for i in cs.yiq_to_rgb(y,i,q) )
 
-
+# converts hsl color instace to rgb
+# input is unnormalized values
 def hsl2rgb(h,s,l):
   "HSL: H [0, 360] - L [0.0, 100] - S [0.0, 100]"
   h = h/360.0
@@ -99,6 +143,8 @@ def hsl2rgb(h,s,l):
   l = l/100.0
   return tuple(int(round(i * 255)) for i in cs.hls_to_rgb(h,l,s) )
 
+# converts rgb color instace to hsl
+# input is unnormalized values
 def rgb2hsl(r,g,b):
   "RGB: R[0, 255] g[0, 255] b[0, 255]"
   r = r/255.0
@@ -107,6 +153,8 @@ def rgb2hsl(r,g,b):
   hls = cs.rgb_to_hls(r,g,b)
   return (int(round(hls[0]*360)),int(round(hls[2]*100)),int(round(hls[1]*100)))
 
+# converts hsv color instace to rgb
+# input is unnormalized values
 def hsv2rgb(h,s,v) :
   "HSV: H [0, 360] - S [0.0, 100] - V [0.0, 100]"
   h = h/360.0
@@ -114,6 +162,8 @@ def hsv2rgb(h,s,v) :
   v = v/100.0
   return tuple(int(round(i * 255)) for i in cs.hsv_to_rgb(h,s,v))
 
+# converts rgb color instace to hsv
+# input is unnormalized values
 def rgb2hsv(r,g,b):
   "RGB: R[0, 255] g[0, 255] b[0, 255]"
   r = r/255.0
@@ -122,7 +172,7 @@ def rgb2hsv(r,g,b):
   hsv = cs.rgb_to_hsv(r,g,b)
   return (int(round(hsv[0]*360)),int(round(hsv[1]*100)),int(round(hsv[2]*100)))
 
-
+# test values
 def test():
   print 'xyz2rgb ' + str(xyz2rgb(48,37,5))
   print 'rgb2xyz ' + str(rgb2xyz(250,132,14))

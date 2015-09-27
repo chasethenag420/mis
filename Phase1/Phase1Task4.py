@@ -55,7 +55,7 @@ def apply_color_map(rescaled_grayscale_diff, color_map,partitions,color_model):
     row_bin_indexes = np.digitize(rescaled_grayscale_diff[row],partitions)
     for col in range(cols):
       color_instance = list(int(round(float(i))) for i in color_map[row_bin_indexes[col]].split(','))
-      color_instance =  hl.get_color_values_in_rgb(color_instance[0],color_instance[1],color_instance[2],color_model)
+      color_instance =  hl.get_color_values_in_bgr(color_instance[0],color_instance[1],color_instance[2],color_model)
       blank_image[row][col] = np.array(color_instance).astype(np.ndarray)
   return blank_image
 
@@ -95,6 +95,9 @@ def main():
 
   print 'Determining the Grayscale difference image'
   grayscale_diff = cv2.subtract(gray_image2.astype(np.int16),gray_image1.astype(np.int16))
+  grayscale_abs_diff = cv2.subtract(gray_image2,gray_image1)
+  cv2.imshow('Grayscale diff',grayscale_abs_diff)
+  cv2.imwrite('Grayscale_diff_{0}_{1}.jpg'.format(frame_number_1,frame_number_2), grayscale_abs_diff)
   print 'Computation of grayscale difference image done'
 
   rescaled_grayscale_diff = grayscale_diff / float(max_value)  
@@ -107,7 +110,7 @@ def main():
 
   print 'Check out the visualization'
   cv2.imshow('Recolored Grayscale Difference',recolored_image) 
-
+  cv2.imwrite('Recolored_Grayscale_diff_{0}_{1}.jpg'.format(frame_number_1,frame_number_2), recolored_image)
   c = cv2.waitKey(0)
   if 'q' == chr(c & 255):
     cv2.destroyAllWindows()
