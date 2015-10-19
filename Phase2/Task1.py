@@ -58,8 +58,8 @@ def extract_video_portion(full_path,output_video_full_path,xMin,yMin,width,heigh
     return frames
   
   # If you face any errors with these variable check opencv github and find the correspongin int values and replace it
-  frameRate = cap.get(cv2.CAP_PROP_FPS)
-  frameCount = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+  # frameRate = cap.get(cv2.CAP_PROP_FPS)
+  # frameCount = cap.get(cv2.CAP_PROP_FRAME_COUNT)
   #signalList = [[[0]*frameCount]*width]*height
   #signal=[[0]*frameCount]*width*height
   #fourCharacterCode = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
