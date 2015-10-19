@@ -166,7 +166,9 @@ def main():
   cit = get_color_comp_from_user('cit', (comp1,comp2,comp3))
   ci0 = get_color_comp_from_user('ci0', (comp1,comp2,comp3))
   ciT = get_color_comp_from_user('ciT', (comp1,comp2,comp3))
-
+  cit_old = cit
+  ci0_old = ci0
+  ciT_old = ciT
   cit = hl.get_color_values_in_bgr( cit[0], cit[1], cit[2],color_model )
   ci0 = hl.get_color_values_in_bgr( ci0[0], ci0[1], ci0[2],color_model )
   ciT = hl.get_color_values_in_bgr( ciT[0], ciT[1], ciT[2],color_model )
@@ -194,7 +196,7 @@ def main():
   image = create_blank_image(height,width)
   
   # save the color map to file with name created from colormodel name, color instance values and number of bits
-  filename = '{0}_{1}-{2}-{3}_{4}-{5}-{6}_{7}-{8}-{9}_{10}.txt'.format(color_model,cit[0],cit[1],cit[2],ci0[0],ci0[1],ci0[2],ciT[0],ciT[1],ciT[2],num_of_bits)
+  filename = '{0}_{1}-{2}-{3}_{4}-{5}-{6}_{7}-{8}-{9}_{10}.txt'.format(color_model,cit_old[0],cit_old[1],cit_old[2],ci0_old[0],ci0_old[1],ci0_old[2],ciT_old[0],ciT_old[1],ciT_old[2],num_of_bits)
   color_map_filename = '{0}\{1}'.format(current_working_dir, filename)
   colormap_bins = genereate_colormap_and_bins(partitions,color_map_partitions,partition_size)
   image = save_colormap_and_bins(colormap_bins,color_map_filename,image,color_model,num_of_bits)

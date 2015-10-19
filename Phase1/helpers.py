@@ -51,7 +51,7 @@ def get_color_values_in_color_model( first, second, third, color_model):
 # input is unnormalized values
 def xyz2rgb(x,y,z):
   "XYZ: x [0,95.047]  y[0,100.000]  z[0,108.883]"
-  xyz = XYZColor(x/100.0, y/100.0, z/100.0,observer='2',illuminant='d65')
+  xyz = XYZColor(x/255.0, y/255.0, z/255.0,observer='2',illuminant='d65')
   rgb = convert_color(xyz, sRGBColor)
   return rgb.get_upscaled_value_tuple()
 
