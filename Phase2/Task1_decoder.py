@@ -4,35 +4,30 @@ import numpy as np
 import os
 
 def main():
-  video_file_name = '1'
-  option_number='5'
   width=10
   height=10
-  video_dir=r'F:\ASU_Projects\MIS\mis\Phase1\sampleDataP1'
-  # video_file_name = raw_input("Enter the video file name:\n")
-  # option_number=raw_input("Enter the option number:\n")
-  input_file_name=r'{0}_{1}.tpc'.format(video_file_name,option_number)
-  output_video_file_name='extracted_'+video_file_name
-  output_video_full_path=r'{0}\{1}'.format(video_dir,output_video_file_name)
-  output_video_full_path='output.avi'
-  
-  output_file_name=r'{0}_{1}.mp4'.format(video_file_name,option_number)
-  current_working_dir = os.getcwd()
-  infile = open( input_file_name ) 
-  frames= None
-  
+  fileSuffix=".mp4"
+  videoFileName=raw_input("Enter the video file name:\n")
+  videoDir = raw_input("Enter the video file directory:\n")
+  optionNumber=raw_input("Enter the option number:\n")
+  fullPath = r'{0}\{1}'.format(videoDir,videoFileName+fileSuffix)
+  inputFileName=r'{0}_{1}.tpc'.format(videoFileName,optionNumber)
+  outputFileName=r'{0}_{1}_out.mov'.format(videoFileName,optionNumber)
 
-  if input_file_name != None:
-    if option_number=='1':
-      frames=tpcDecodingOption1(infile) 
-    elif option_number=='2':
-      frames=tpcDecodingOption2(infile)
-    elif option_number=='3':
-      frames=tpcDecodingOption3(infile)
-    elif option_number=='4':
-      frames=tpcDecodingOption4(infile)
-    elif option_number=='5':
-      frames=tpcDecodingOption5(infile)
+  inFile = open( inputFileName ) 
+  frames= None
+
+  if inputFileName != None:
+    if optionNumber=='1':
+      frames=tpcDecodingOption1(inFile) 
+    elif optionNumber=='2':
+      frames=tpcDecodingOption2(inFile)
+    elif optionNumber=='3':
+      frames=tpcDecodingOption3(inFile)
+    elif optionNumber=='4':
+      frames=tpcDecodingOption4(inFile)
+    elif optionNumber=='5':
+      frames=tpcDecodingOption5(inFile)
     else: 
       print "Input not valid"
       quit()
@@ -40,54 +35,48 @@ def main():
     print "Some error while reading video file"
 
   if frames !=None:
-    decodeVideo(frames,width,height,output_video_full_path,input_file_name)
+    decodeVideo(frames,fullPath,width,height,outputFileName,inputFileName)
 
-  infile.flush()
-  infile.close()
+  inFile.flush()
+  inFile.close()
 
 # frames: each row represent pixels in a frame which will be reshaped to width and height
-def decodeVideo(frames,width,height,output_video_full_path,input_file_name):
+def decodeVideo(frames,fullPath,width,height,outputVideoFileName,inputFileName):
   frameSize=frames.shape
   frameRate=30
-  output_file_name=input_file_name+"decoded.txt"
-  outfile = open( output_file_name, 'w' )
+  fourcc=-1
+
+  cap = cv2.VideoCapture(fullPath)
+  if cap.isOpened:
+    frameRate=cap.get(cv2.CAP_PROP_FPS)
+    fourcc=cap.get(cv2.CAP_PROP_FOURCC)
+
+  outputFileName=inputFileName+"decoded.txt"
+  outfile = open( outputFileName, 'w' )
   #fourcc = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
   #fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-  fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V')
-  out = cv2.VideoWriter(output_video_full_path, fourcc, frameRate,(width,height))
+  #fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V')
+  
+  outVideoFile = cv2.VideoWriter(outputVideoFileName, int(fourcc), frameRate,(width,height))
   for x in range(0,frameSize[0]):    
-      # for y in range(0,frameSize[1]):
-      # pixel=[lines[x][y],0,0]
-      # row=[]      
-      # for i in range(0,width):
-      #   col=[]
-      #   for j in range(0,height):          
-      #     col.append(pixel)
-      #   row.append(col)
-      # frame=np.array(row)
       frame=np.array(np.array(frames[x][:]).reshape(width,height), dtype=np.uint8)
       cv2.imshow("Decoded Y channel",frame)
       outfile.write(" ".join(map(str,frames[x][:]))+"\n")
-      #out.write(frame)
+      outVideoFile.write(frame)
       c = cv2.waitKey(1)
       if 'q' == chr(c & 255):
         break     
-  out.release()    
-  # cv2.imshow("frame",frames)
-  #print frames.shape
-  # wait for user to press some key to close windows and exit
-  #c = cv2.waitKey(0)
-  #if 'q' == chr(c & 255):
+  outVideoFile.release()    
   cv2.destroyAllWindows()
-  print "Output saved to text "+output_file_name
+  print "Output saved to text "+outputFileName
   outfile.flush()
   outfile.close()
 
   
-def tpcDecodingOption1(infile):
+def tpcDecodingOption1(inFile):
    
   lines=None
-  for line in infile:
+  for line in inFile:
     if lines==None:
       lines=np.array(list(map(int,line.split())))
     else:
@@ -95,9 +84,9 @@ def tpcDecodingOption1(infile):
   return lines
   
 
-def tpcDecodingOption2(infile):
+def tpcDecodingOption2(inFile):
   lines=None
-  for line in infile:
+  for line in inFile:
     encodedSignal = list(map(int,line.split()))
     decodedSignal=[]
     for index,value in enumerate(encodedSignal):
@@ -114,9 +103,9 @@ def tpcDecodingOption2(infile):
   return lines  
 
 
-def tpcDecodingOption3(infile):
+def tpcDecodingOption3(inFile):
   lines=None
-  for line in infile:
+  for line in inFile:
     encodedSignal = list(map(float,line.split()))
     decodedSignal=[]
     for index,value in enumerate(encodedSignal):
@@ -132,11 +121,11 @@ def tpcDecodingOption3(infile):
       lines=np.column_stack((lines,decodedSignal))
   return lines
 
-def tpcDecodingOption4(infile):
+def tpcDecodingOption4(inFile):
   lines=None
   alpha1=0.5
   alpha2=0.5
-  for line in infile:
+  for line in inFile:
     encodedSignal = list(map(float,line.split()))
     decodedSignal=[]
     for index,value in enumerate(encodedSignal):
@@ -174,11 +163,11 @@ def tpcDecodingOption4(infile):
       lines=np.column_stack((lines,decodedSignal))
   return lines
   
-def tpcDecodingOption5(infile):
+def tpcDecodingOption5(inFile):
   lines=None
   alpha1=float(raw_input("Enter aplha1 predictor: "))
   alpha2=float(raw_input("Enter aplha2 predictor: "))
-  for line in infile:
+  for line in inFile:
     encodedSignal = list(map(float,line.split()))
     decodedSignal=[]
     for index,value in enumerate(encodedSignal):
