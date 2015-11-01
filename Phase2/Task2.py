@@ -4,25 +4,22 @@ import numpy as np
 import os
 
 def main():
-  video_dir=r'F:\ASU_Projects\MIS\mis\Phase1\sampleDataP1'
-  video_file_name = '1.mp4'
-  xMin=700
-  yMin=400
   width=10
   height=10
-  #option_number='1'
+  option_number='4'
+
+  #video_dir = "sampleDataP1"
+  #video_file_name = "1.mp4"
   
-  '''
+  
+  fileSuffix=".mp4"
   video_dir = raw_input("Enter the video file directory:\n")
-  video_file_name = raw_input("Enter the video file name:\n")
+  video_file_name = raw_input("Enter the video file name (without the .mp4 suffix):\n")
   xMin=int(raw_input("Enter the top-left x coordiante:\n"))
   yMin=int(raw_input("Enter the top-left y coordiante:\n"))
-  '''
 
-  # video_dir = "sampleDataP1"
-  # video_file_name = "1.mp4"
-  # xMin = 1
-  # yMin = 1
+  
+  
 
 
   print "Select any one of the following: "
@@ -35,9 +32,11 @@ def main():
 
   option_number=raw_input("Enter the option number:\n")
 
-  full_path = r'{0}\{1}'.format(video_dir,video_file_name) 
-  output_video_file_name='extracted_'+video_file_name
-  output_video_full_path=r'{0}\{1}'.format(video_dir,output_video_file_name)
+  full_video_name = video_file_name + ".mp4"
+  full_path = r'{0}/{1}'.format(video_dir,full_video_name) 
+  #full_path = r'{0}/{1}'.format(video_dir,video_file_name+fileSuffix)
+  output_video_file_name='extracted_'+full_video_name
+  output_video_full_path=r'{0}/{1}'.format(video_dir,output_video_file_name)
   output_video_full_path='output.mov'
   
   output_file_name=r'{0}_{1}.spc'.format(video_file_name,option_number)
@@ -78,8 +77,8 @@ def extract_video_portion(full_path,output_video_full_path,xMin,yMin,width,heigh
     return frames
   
   # If you face any errors with these variable check opencv github and find the correspongin int values and replace it
-  frameRate = cap.get(cv2.CAP_PROP_FPS)
-  frameCount = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+  frameRate = cap.get(cv2.cv.CV_CAP_PROP_FPS)
+  frameCount = cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
   #signalList = [[[0]*frameCount]*width]*height
   #signal=[[0]*frameCount]*width*height
   #fourCharacterCode = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
@@ -120,13 +119,11 @@ def spatialPredictiveCodingOption1(frames,output_file_name,width,height):
   outfile = open( output_file_name, 'w' )  
   error = 0;
 
-  print frames 
-
-  for k in range(0, 3):
+  #for k in range(0, 3):
     #outfile.write(str(frames[k]))
     #outfile.write("\n")
-    print frames[k]
-    print "\n"
+    #print frames[k]
+    #print "\n"
     #print frames[k][0]
     #print "\n"
     #print frames[k][0][0] 
@@ -206,7 +203,7 @@ def spatialPredictiveCodingOption3(frames,output_file_name,width,height):
         if(i == 0):
           newRow.append(frames[k][0][j])
         else:
-          newError = frames[k][i][j] - frames[k][i-1][j]
+          newError = int(frames[k][i][j]) - int(frames[k][i-1][j])
           error = error + abs(newError)
           newRow.append(newError)
       newFrame.append(newRow)
@@ -317,12 +314,9 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
           predictorB = frames[k][i-1][j] * alpha2
           predictorC = frames[k][i-1][j-1] * alpha3
 
-          #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
           totalPredictor = predictorA + predictorB + predictorC
           newError = frames[k][i][j] - totalPredictor
-          #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-          #newError = predictorA + predictorB + predictorC
           error = error + abs(newError)
           newRow.append(newError)
         else:
@@ -341,36 +335,31 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
           predictedValThreeB = frames[k][i-1][j-1]
           predictedValThreeC = frames[k][i-1][j-2]
 
-          #print "Hit here!!"
-
-          #a = np.array([[3,1], [1,2]])
-          #print a
-
           a = np.array([[predictedValOneA, predictedValOneB, predictedValOneC],[predictedValTwoA, predictedValTwoB, predictedValTwoC],[predictedValThreeA, predictedValThreeB, predictedValThreeC]])
-          #print a
-          #print "\n\n"
           b = np.array([predictedValOne, predictedValTwo, predictedValThree])
-          #print b
 
-          
-
-          #+++++++++++++++++++++++++++++++++++
           if np.linalg.cond(a) < 1/sys.float_info.epsilon:
-            #i = linalg.inv(x)
             x = np.linalg.solve(a, b)
             alpha1 = x[0]
             alpha2 = x[1]
             alpha3 = x[2]
 
-            if alpha1 >= 0.0 and alpha1 < 1.0:
-              if alpha2 >= 0.0 and alpha2 < 1.0:
-                if alpha3 >= 0.0 and alpha3 < 1.0:
+            if alpha1 >= 0.0 and alpha1 <= 1.0:
+              if alpha2 >= 0.0 and alpha2 <= 1.0:
+                if alpha3 >= 0.0 and alpha3 <= 1.0:
                   sumAlpha = alpha1 + alpha2 + alpha3
-
                   if sumAlpha != 1.0:
                     alpha1 = 0.33
                     alpha2 = 0.33
                     alpha3 = 0.33
+                else:
+                  alpha1 = 0.33
+                  alpha2 = 0.33
+                  alpha3 = 0.33
+              else:
+                alpha1 = 0.33
+                alpha2 = 0.33
+                alpha3 = 0.33
             else:
               alpha1 = 0.33
               alpha2 = 0.33
@@ -381,28 +370,24 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
             alpha2 = 0.33
             alpha3 = 0.33
 
-          #+++++++++++++++++++++++++++++++++++
-
           predictorA = frames[k][i][j-1] * alpha1
           predictorB = frames[k][i-1][j] * alpha2
           predictorC = frames[k][i-1][j-1] * alpha3
-          #
+
           totalPredictor = predictorA + predictorB + predictorC
           newError = frames[k][i][j] - totalPredictor
-          #
 
-          #newError = predictorA + predictorB + predictorC
           error = error + abs(newError)
           newRow.append(newError)
 
       newFrame.append(newRow)
     newFrames.append(newFrame)
 
-  for k in range(100, 103):
+  #for k in range(100, 103):
     #outfile.write(str(frames[k]))
     #outfile.write("\n")
-    print frames[k]
-    print newFrames[k]
+    #print frames[k]
+    #print newFrames[k]
     #print "\n"
 
   for k in range(0, frameCount):
@@ -419,14 +404,6 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
 
 
       
-
-
-
-
-
-
-
-
 
 
 

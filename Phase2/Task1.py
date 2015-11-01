@@ -34,9 +34,6 @@ def main():
     elif optionNumber=='4':
       error=temporalPredictiveCodingOption4(frames,outFile,width,height)
       print "Output saved to {0}".format(outputFileName)
-    elif optionNumber=='5':
-      error=temporalPredictiveCodingOption5(frames,outFile,width,height)
-      print "Output saved to {0}".format(outputFileName)
     else: 
       print "Input not valid"
       quit()
@@ -85,26 +82,28 @@ def temporalPredictiveCodingOption2(frames,outFile,width,height):
   frameCount=len(frames)
   pcSignal=[0]*frameCount
   error = 0;
-
+  extraError=0;
   for i in range(0,width):
     for j in range(0,height):
       signal = (frames[range(0,int(frameCount)),[i],[j]]).tolist()
       for k in range(0,frameCount):
         if k==0:
-          pcSignal[k] = signal[0]
+          pcSignal[k] = signal[k]
+          extraError=extraError+signal[k]
         else:
           pcSignal[k] = signal[k] - signal[k-1]
       outFile.write(" ".join(map(str,pcSignal))+"\n")
-      error = error + sum([abs(p) for p in pcSignal])
-      #error = error + sum(pcSignal)
+      #error = error + sum([abs(p) for p in pcSignal])
+      error = error + sum(pcSignal)
 
   # subract intial signal value from error as we are sending original value
-  return abs(error-signal[0])
+  return abs(error-extraError)
 
 def temporalPredictiveCodingOption3(frames,outFile,width,height):
   frameCount=len(frames)
   pcSignal=[0]*frameCount
   error = 0;
+  extraError=0;
 
   for i in range(0,width):
     for j in range(0,height):
@@ -113,100 +112,62 @@ def temporalPredictiveCodingOption3(frames,outFile,width,height):
       for k in range(0,frameCount):
         if k<=1:
           pcSignal[k] = signal[k]
+          extraError=extraError+signal[k]
         else:
           pcSignal[k] = signal[k] - signal[k-1]/float(2) - signal[k-2]/float(2)
       outFile.write(" ".join(map(str,pcSignal))+"\n")
-      error = error + sum([abs(p) for p in pcSignal])
-      #error = error + sum(pcSignal)
+      #error = error + sum([abs(p) for p in pcSignal])
+      error = error + sum(pcSignal)
 
-  # subract intial 2 signal values from error as we are sending original value
-  return abs(error-signal[0]-signal[1])
+  return abs(error-extraError)
 
 def temporalPredictiveCodingOption4(frames,outFile,width,height):
   frameCount=len(frames)
-  pcSignal=[0]*frameCount
+  pcSignal=None
   error = 0;
   alpha1 = 0.5
   alpha2 = 0.5
+  extraError=0;
 
   for i in range(0,width):
     for j in range(0,height):
-
       signal = (frames[range(0,int(frameCount)),[i],[j]]).tolist()
+      pcSignal=[]
       for k in range(0,frameCount):
-        if k<=2:
-          pcSignal[k] = signal[k]
+        if k<=1:
+          pcSignal.append(signal[k])
+          extraError=extraError+signal[k]
         else:
-          k1k2Diff = signal[k-1] - signal[k-2]
-          if k1k2Diff == 0:
+          if k<=3:
             alpha1=0.5
             alpha2=0.5
+            pcSignal.append(signal[k] - (alpha1*signal[k-1]  + alpha2*signal[k-2]))
           else:
-            alpha1 = (signal[k] - signal[k-2])/float(k1k2Diff)
-            alpha2 = (signal[k-1] - signal[k])/float(k1k2Diff)
-          
-          if alpha1>1 and alpha2>1:
-            alpha1=0.5
-            alpha2=0.5
-          elif alpha1<0 and alpha2<0:
-            alpha1=0.5
-            alpha2=0.5
-          elif alpha1<0 or alpha2>1:
-            alpha1=0.0
-            alpha2=1.0
-          elif alpha1 >1 or alpha2<0:
-            alpha1=1.0
-            alpha2=0.0
-          
-          pcSignal[k] = signal[k] - (alpha1*signal[k-1]  + alpha2*signal[k-2])
+            k1k2Diff = signal[k-2] - signal[k-4]
+            if k1k2Diff == 0:
+              alpha1=0.5
+              alpha2=0.5
+            else:
+              alpha1 = (signal[k-1] + signal[k-2]-signal[k-3]-signal[k-4])/float(k1k2Diff)
+              alpha2 = 1-alpha1
+            
+              if alpha1>1 and alpha2>1:
+                alpha1=0.5
+                alpha2=0.5
+              elif alpha1<0 and alpha2<0:
+                alpha1=0.5
+                alpha2=0.5
+              elif alpha1<0 or alpha2>1:
+                alpha1=0.0
+                alpha2=1.0
+              elif alpha1 >1 or alpha2<0:
+                alpha1=1.0
+                alpha2=0.0
+            pcSignal.append(signal[k] - (alpha1*signal[k-1]  + alpha2*signal[k-2]))
       outFile.write(" ".join(map(str,pcSignal))+"\n")
-      error = error + sum([abs(p) for p in pcSignal])
-      #error = error + sum(pcSignal)
+      #error = error + sum([abs(p) for p in pcSignal])
+      error = error + sum(pcSignal)
 
-  # subract intial 3 signal values from error as we are sending original value
-  return abs(error-signal[0]-signal[1]-signal[2])
-
-def temporalPredictiveCodingOption5(frames,outFile,width,height):
-  frameCount=len(frames)
-  pcSignal=[0]*frameCount
-
-  alpha1 = 0.5
-  alpha2 = 0.5
-  errors=[]
-  for p in np.arange(0,1.1,0.1):
-    alpha1=p
-    alpha2=1-p
-    error=0
-    for i in range(0,width):
-      for j in range(0,height):
-        signal = (frames[range(0,int(frameCount)),[i],[j]]).tolist()        
-        for k in range(0,frameCount):
-          if k<=2:
-            pcSignal[k] = signal[k]
-          else:
-            pcSignal[k] = signal[k] - (alpha1*signal[k-1]  + alpha2*signal[k-2])
-        error = error + sum([abs(p) for p in pcSignal])
-        #error = error + sum(pcSignal)         
-    errors.append(abs(error-signal[0]-signal[1]-signal[2]))
-  predictorAlpha1=errors.index(min(errors))/float(10)
-  predictorAlpha2=(10-errors.index(min(errors)))/float(10)
-  print "predictor alpha1 %d" %  predictorAlpha1    
-  print "predictor alpha2 %d" %  predictorAlpha2      
-
-  error=0
-  for i in range(0,width):
-    for j in range(0,height):
-      signal = (frames[range(0,int(frameCount)),[i],[j]]).tolist()        
-      for k in range(0,frameCount):
-        if k<=2:
-          pcSignal[k] = signal[k]
-        else:
-          pcSignal[k] = signal[k] - (predictorAlpha1*signal[k-1]  + predictorAlpha2*signal[k-2])
-      outFile.write(" ".join(map(str,pcSignal))+"\n")
-      error = error + sum([abs(p) for p in pcSignal])
-        #error = error + sum(pcSignal)         
-  
-  # subract intial 3 signal values from error as we are sending original value
-  return abs(error-signal[0]-signal[1]-signal[2])
+  return abs(error-extraError)
 
 main()
