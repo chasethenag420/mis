@@ -14,7 +14,7 @@ def main():
   yMin=int(raw_input("Enter the y coordiante:\n"))
   optionNumber=raw_input("Enter the option number:\n")
 
-  fullPath = r'{0}\{1}'.format(videoDir,videoFileName+fileSuffix) 
+  fullPath = r'{0}/{1}'.format(videoDir,videoFileName+fileSuffix) 
   outputFileName=r'{0}_{1}.tpc'.format(videoFileName,optionNumber)
 
   frames = extract_video_portion(fullPath,xMin,yMin,width,height)
@@ -57,7 +57,6 @@ def extract_video_portion(fullPath,xMin,yMin,width,height):
     if success == True :
       cropImg = img[yMin:yMax,xMin:xMax]
       yuvImage = cv2.cvtColor(cropImg, cv2.COLOR_BGR2YUV)
-      
       y,u,v=cv2.split(yuvImage)
       if frames == None:
         frames=np.array([y])
