@@ -290,7 +290,7 @@ def create_output_file_shannon_fano(symbol_dictionary,output_image,output_file_n
 def create_output_file_lzw(string_table, output_image, output_file_name):
   outfile = open( output_file_name,'w' )
   outfile.write(str(string_table)+"\n")
-  for i in output_image.tolist():
+  for i in output_image:
     outfile.write(str(i))
   
   outfile.flush()
