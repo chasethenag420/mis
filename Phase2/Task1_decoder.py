@@ -57,14 +57,13 @@ def decodeVideo(frames,fullPath,width,height,outputVideoFileName,inputFileName):
   outputFileName=inputFileName+"decoded.txt"
   outfile = open( outputFileName, 'w' )
   #fourcc = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
-  #fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+  fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
   #fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V')
-  
   outVideoFile = cv2.VideoWriter(outputVideoFileName, int(fourcc), frameRate,(width,height))
   for x in range(0,frameSize[0]): 
       frame=np.array(np.array(frames[x][:]).reshape(width,height), dtype=np.uint8)
-      u=np.zeros((width,height), dtype=np.uint8)
-      v=np.zeros((width,height), dtype=np.uint8)
+      u=np.ones((width,height), dtype=np.uint8)*128
+      v=np.ones((width,height), dtype=np.uint8)*128
       yuvImage=cv2.merge((frame,u,v))
       rgbImage = cv2.cvtColor(yuvImage, cv2.COLOR_YUV2BGR)
       cv2.imshow("Decoded Y channel",yuvImage)
