@@ -253,8 +253,8 @@ def decodeVideo(frames,fullPath,width,height,outputVideoFileName):
   outVideoFile = cv2.VideoWriter(outputVideoFileName, int(fourcc), frameRate,(width,height))
   for x in range(0,size): 
       frame=np.array(frames[x], dtype=np.uint8)
-      u=np.zeros((width,height), dtype=np.uint8)
-      v=np.zeros((width,height), dtype=np.uint8)
+      u=np.ones((width,height), dtype=np.uint8)*128
+      v=np.ones((width,height), dtype=np.uint8)*128
       yuvImage=cv2.merge((frame,u,v))
       rgbImage = cv2.cvtColor(yuvImage, cv2.COLOR_YUV2BGR)
       cv2.imshow("Decoded Y channel",yuvImage)
