@@ -6,22 +6,15 @@ import os
 def main():
   width=10
   height=10
-  option_number='4'
 
   #video_dir = "sampleDataP1"
   #video_file_name = "1.mp4"
-  
-  
+
   fileSuffix=".mp4"
   video_dir = raw_input("Enter the video file directory:\n")
   video_file_name = raw_input("Enter the video file name (without the .mp4 suffix):\n")
   xMin=int(raw_input("Enter the top-left x coordiante:\n"))
   yMin=int(raw_input("Enter the top-left y coordiante:\n"))
-
-  
-  
-
-
   print "Select any one of the following: "
   print "Press 1 for No PC"
   print "Press 2 for Predictor A"
@@ -34,13 +27,11 @@ def main():
 
   full_video_name = video_file_name + ".mp4"
   full_path = r'{0}/{1}'.format(video_dir,full_video_name) 
-  #full_path = r'{0}/{1}'.format(video_dir,video_file_name+fileSuffix)
   output_video_file_name='extracted_'+full_video_name
   output_video_full_path=r'{0}/{1}'.format(video_dir,output_video_file_name)
-  output_video_full_path='output.mov'
+  output_video_full_path='output.mp4'
   
   output_file_name=r'{0}_{1}.spc'.format(video_file_name,option_number)
-  #extract_video_portion(full_path,output_video_full_path,xMin,yMin,width,height)
 
   frames = extract_video_portion(full_path,output_video_full_path,xMin,yMin,width,height)
 
@@ -76,26 +67,12 @@ def extract_video_portion(full_path,output_video_full_path,xMin,yMin,width,heigh
   if cap.isOpened == None:
     return frames
   
-  # If you face any errors with these variable check opencv github and find the correspongin int values and replace it
-  frameRate = cap.get(cv2.cv.CV_CAP_PROP_FPS)
-  frameCount = cap.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
-  #signalList = [[[0]*frameCount]*width]*height
-  #signal=[[0]*frameCount]*width*height
-  #fourCharacterCode = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
-  #fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
-  #print fourcc
-  #print fourCharacterCode
-  #out = cv2.VideoWriter(output_video_full_path, fourCharacterCode, frameRate,(width,height))
   while cap.isOpened:
     success, img = cap.read()
     if success == True :
       cropImg = img[yMin:yMax,xMin:xMax]
-      # cv2.imshow('video',img)
-      # cv2.imshow('cropped video',cropImg)
-      #out.write(cropImg)      
       yuvImage = cv2.cvtColor(cropImg, cv2.COLOR_BGR2YUV)
       y,u,v=cv2.split(yuvImage)
-      #signals.append(y)
       if frames == None:
         frames=np.array([y])
       else:
@@ -103,13 +80,7 @@ def extract_video_portion(full_path,output_video_full_path,xMin,yMin,width,heigh
     else:
       cap.release() 
       break  
-    # print frames.shape   
-    # q = cv2.waitKey(1)
-    # if 'q' == chr(q & 255):
-    #   break 
-  #out.release()
   cv2.destroyAllWindows()
-  #print frames[range(0,int(frameCount)),[0],[1]]
   return frames
 
 def spatialPredictiveCodingOption1(frames,output_file_name,width,height):
@@ -117,18 +88,7 @@ def spatialPredictiveCodingOption1(frames,output_file_name,width,height):
   frameCount = len(frames)
   current_working_dir = os.getcwd()
   outfile = open( output_file_name, 'w' )  
-  error = 0;
-
-  #for k in range(0, 3):
-    #outfile.write(str(frames[k]))
-    #outfile.write("\n")
-    #print frames[k]
-    #print "\n"
-    #print frames[k][0]
-    #print "\n"
-    #print frames[k][0][0] 
-
-
+  error = 0
   for k in range(0, frameCount):
     for i in range (0, height):
       for j in range(0, width):
@@ -147,10 +107,10 @@ def spatialPredictiveCodingOption2(frames,output_file_name,width,height):
   frameCount = len(frames)
   current_working_dir = os.getcwd()
   outfile = open( output_file_name, 'w' )  
-  error = 0;
+  error = 0
+  extraError=0
 
   newFrames = []
-
   for k in range(0, frameCount):
     newFrame = []
     for i in range(0, height):
@@ -158,20 +118,13 @@ def spatialPredictiveCodingOption2(frames,output_file_name,width,height):
       for j in range(0, width):
         if(j == 0):
           newRow.append(frames[k][i][0])
+          extraError=extraError+frames[k][i][0]
         else:
           newError = int(frames[k][i][j]) - int(frames[k][i][j-1])
-          error = error + abs(newError)
+          error = error + newError
           newRow.append(newError)
       newFrame.append(newRow)
     newFrames.append(newFrame)
-
-  #for k in range(0, 3):
-    #outfile.write(str(frames[k]))
-    #outfile.write("\n")
-    #print frames[k]
-    #print newFrames[k]
-    #print "\n"
-
   for k in range(0, frameCount):
     for i in range (0, height):
       for j in range(0, width):
@@ -179,7 +132,7 @@ def spatialPredictiveCodingOption2(frames,output_file_name,width,height):
         outfile.write(" ")
     outfile.write("\n")
 
-  print "Total absolute prediction error is {0}".format(error)
+  print "Total absolute prediction error is {0}".format(abs(error-extraError))
   outfile.flush()
   outfile.close()
 
@@ -191,7 +144,8 @@ def spatialPredictiveCodingOption3(frames,output_file_name,width,height):
   frameCount = len(frames)
   current_working_dir = os.getcwd()
   outfile = open( output_file_name, 'w' )  
-  error = 0;
+  error = 0
+  extraError=0
 
   newFrames = []
 
@@ -202,20 +156,13 @@ def spatialPredictiveCodingOption3(frames,output_file_name,width,height):
       for j in range(0, width):
         if(i == 0):
           newRow.append(frames[k][0][j])
+          extraError=extraError+frames[k][0][j]
         else:
           newError = int(frames[k][i][j]) - int(frames[k][i-1][j])
-          error = error + abs(newError)
+          error = error + newError
           newRow.append(newError)
       newFrame.append(newRow)
     newFrames.append(newFrame)
-
-  #for k in range(0, 3):
-    #outfile.write(str(frames[k]))
-    #outfile.write("\n")
-    #print frames[k]
-    #print newFrames[k]
-    #print "\n"
-
 
   for k in range(0, frameCount):
     for i in range (0, height):
@@ -224,7 +171,7 @@ def spatialPredictiveCodingOption3(frames,output_file_name,width,height):
         outfile.write(" ")
     outfile.write("\n")
 
-  print "Total absolute prediction error is {0}".format(error)
+  print "Total absolute prediction error is {0}".format(abs(error-extraError))
   outfile.flush()
   outfile.close()
 
@@ -237,7 +184,8 @@ def spatialPredictiveCodingOption4(frames,output_file_name,width,height):
   frameCount = len(frames)
   current_working_dir = os.getcwd()
   outfile = open( output_file_name, 'w' )  
-  error = 0;
+  error = 0
+  extraError=0
 
   newFrames = []
 
@@ -249,24 +197,19 @@ def spatialPredictiveCodingOption4(frames,output_file_name,width,height):
         if i == 0 or j == 0:
           if i == 0 and j != 0:
             newRow.append(frames[k][0][j])
+            extraError=extraError+frames[k][0][j]
           elif i != 0 and j == 0:
             newRow.append(frames[k][i][0])
+            extraError=extraError+frames[k][i][0]
           elif i == 0 and j == 0:
             newRow.append(frames[k][0][0])
+            extraError=extraError+frames[k][0][0]
         else:
           newError = frames[k][i][j] - frames[k][i-1][j-1]
-          error = error + abs(newError)
+          error = error + newError
           newRow.append(newError)
       newFrame.append(newRow)
     newFrames.append(newFrame)
-
-
-  #for k in range(0, 3):
-    #outfile.write(str(frames[k]))
-    #outfile.write("\n")
-    #print frames[k]
-    #print newFrames[k]
-    #print "\n"
 
   for k in range(0, frameCount):
     for i in range (0, height):
@@ -275,7 +218,7 @@ def spatialPredictiveCodingOption4(frames,output_file_name,width,height):
         outfile.write(" ")
     outfile.write("\n")
 
-  print "Total absolute prediction error is {0}".format(error)
+  print "Total absolute prediction error is {0}".format(abs(error-extraError))
   outfile.flush()
   outfile.close()
 
@@ -290,9 +233,7 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
   alpha2 = 0.33
   alpha3 = 0.33
 
-
   newFrames = []
-
   for k in range(0, frameCount):
     newFrame = []
     for i in range (0, height):
@@ -315,9 +256,9 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
           predictorC = frames[k][i-1][j-1] * alpha3
 
           totalPredictor = predictorA + predictorB + predictorC
-          newError = frames[k][i][j] - totalPredictor
+          newError = float(frames[k][i][j]) - float(totalPredictor)
 
-          error = error + abs(newError)
+          error = error + newError
           newRow.append(newError)
         else:
           predictedValOne = frames[k][i][j-3]
@@ -375,20 +316,13 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
           predictorC = frames[k][i-1][j-1] * alpha3
 
           totalPredictor = predictorA + predictorB + predictorC
-          newError = frames[k][i][j] - totalPredictor
+          newError = float(frames[k][i][j]) - float(totalPredictor)
 
-          error = error + abs(newError)
+          error = error + newError
           newRow.append(newError)
 
       newFrame.append(newRow)
     newFrames.append(newFrame)
-
-  #for k in range(100, 103):
-    #outfile.write(str(frames[k]))
-    #outfile.write("\n")
-    #print frames[k]
-    #print newFrames[k]
-    #print "\n"
 
   for k in range(0, frameCount):
     for i in range (0, height):
@@ -397,17 +331,9 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
         outfile.write(" ")
     outfile.write("\n")
 
-  print "Total absolute prediction error is {0}".format(error)
+  print "Total absolute prediction error is {0}".format(abs(error-extraError))
   outfile.flush()
   outfile.close()
-
-
-
-      
-
-
-
-
 
 
 main()

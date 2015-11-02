@@ -9,12 +9,6 @@ def spatialPredictiveDecodingOption1(frames, output_file_name):
   	outfile = open( output_file_name, 'w' )
   	frameCount = len(frames)
 
-
-	#for k in range(0, 3):	
-		#print frames[k]
-
-	#print "\n\n"
-
 	for k in range(0, frameCount):
 		for i in range(0, 10):
 			for j in range(0, 10):
@@ -25,8 +19,6 @@ def spatialPredictiveDecodingOption1(frames, output_file_name):
 
 	newFrames = np.array(frames)
 	
-	#for k in range(0, 3):	
-		#print newFrames[k]
 	outfile.flush()
   	outfile.close()
   	print "\nOutput saved to {0}\n".format(output_file_name)
@@ -37,10 +29,6 @@ def spatialPredictiveDecodingOption2(frames, output_file_name):
 	current_working_dir = os.getcwd()
   	outfile = open( output_file_name, 'w' )
 
-	#for k in range(0, 3):
-		#print frames[k]
-
-	
 	for k in range(0,frameCount):
 		newFrame = []
 		for i in range(0, 10):
@@ -48,19 +36,9 @@ def spatialPredictiveDecodingOption2(frames, output_file_name):
 			for j in range(0, 10):
 				if(j == 0):
 					frames[k][i][j] = int(round(frames[k][i][j]))
-					#continue
-					#newRow.append(frames[k][i][0])
 				else:
 					frames[k][i][j] = frames[k][i][j] + frames[k][i][j-1]
 					frames[k][i][j] = int(round(frames[k][i][j]))
-					#print "frames[k][i][j]: ", frames[k][i][j]
-					#num = j-1
-					#print "newRow[j-1]", newRow[num]
-					#newDecoding = frames[k][i][j] + newRow[j-1]
-
-	#for k in range(0, 3):
-		#print frames[k]
-		#print "\n\n"
 
 	for k in range(0, frameCount):
 		for i in range (0, 10):
@@ -72,27 +50,16 @@ def spatialPredictiveDecodingOption2(frames, output_file_name):
 
 	newFrames = np.array(frames)
 
-	#for k in range(0, 3):
-		#print newFrames[k]
-
 	outfile.flush()
   	outfile.close()
   	print "\nOutput saved to {0}\n".format(output_file_name)
 	return newFrames
 
 
-
-	#Return frames??????????
-
 def spatialPredictiveDecodingOption3(frames, output_file_name):
 	frameCount = len(frames)
 	current_working_dir = os.getcwd()
   	outfile = open( output_file_name, 'w' )
-
-	#for k in range(0, 3):
-		#print frames[k]
-
-	#print "\n\n"
 	
 	for k in range(0,frameCount):
 		newFrame = []
@@ -101,17 +68,9 @@ def spatialPredictiveDecodingOption3(frames, output_file_name):
 			for j in range(0, 10):
 				if(i == 0):
 					frames[k][i][j] = int(round(frames[k][i][j]))
-					#newRow.append(frames[k][i][0])
 				else:
 					frames[k][i][j] = frames[k][i][j] + frames[k][i-1][j]
 					frames[k][i][j] = int(round(frames[k][i][j]))
-					#print "frames[k][i][j]: ", frames[k][i][j]
-					#num = j-1
-					#print "newRow[j-1]", newRow[num]
-					#newDecoding = frames[k][i][j] + newRow[j-1]
-
-	#for k in range(0, 3):
-		#print frames[k]
 
 
 	for k in range(0, frameCount):
@@ -122,9 +81,6 @@ def spatialPredictiveDecodingOption3(frames, output_file_name):
 		outfile.write("\n")
 
 	newFrames = np.array(frames)
-
-	#for k in range(0, 3):
-		#print newFrames[k]
 	
 	outfile.flush()
   	outfile.close()
@@ -137,11 +93,6 @@ def spatialPredictiveDecodingOption4(frames, output_file_name):
 	frameCount = len(frames)
 	current_working_dir = os.getcwd()
   	outfile = open( output_file_name, 'w' )
-
-	#for k in range(0, 3):
-		#print frames[k]
-
-	#print "\n\n"
 	
 	for k in range(0,frameCount):
 		newFrame = []
@@ -150,17 +101,14 @@ def spatialPredictiveDecodingOption4(frames, output_file_name):
 			for j in range(0, 10):
 				if i == 0 or j == 0:
 					if i == 0 and j != 0:
-						frames[k][i][j] = int(round(frames[k][i][j]))
+						frames[k][i][j] = int(round(frames[k][0][j]))
 					elif i != 0 and j == 0:
-						frames[k][i][j] = int(round(frames[k][i][j]))
+						frames[k][i][j] = int(round(frames[k][i][0]))
 					elif i == 0 and j == 0:
-						frames[k][i][j] = int(round(frames[k][i][j]))
+						frames[k][i][j] = int(round(frames[k][0][0]))
 				else:
 					frames[k][i][j] = frames[k][i][j] + frames[k][i-1][j-1]
 					frames[k][i][j] = int(round(frames[k][i][j]))
-
-	#for k in range(0, 3):
-		#print frames[k]
 
 	for k in range(0, frameCount):
 		for i in range (0, 10):
@@ -172,9 +120,6 @@ def spatialPredictiveDecodingOption4(frames, output_file_name):
 
 	newFrames = np.array(frames)
 
-	#for k in range(0, 3):
-		#print newFrames[k]
-	
 	outfile.flush()
   	outfile.close()
   	print "\nOutput saved to {0}\n".format(output_file_name)
@@ -270,10 +215,6 @@ def spatialPredictiveDecodingOption5(frames, output_file_name):
 					frames[k][i][j] = int(round(frames[k][i][j]))
 
 
-	#for k in range(0, 3):
-		#print "\n\n"
-		#print frames[k]
-
 	for k in range(0, frameCount):
 		for i in range (0, 10):
 			for j in range(0, 10):
@@ -282,9 +223,6 @@ def spatialPredictiveDecodingOption5(frames, output_file_name):
 		outfile.write("\n")
 
 	newFrames = np.array(frames)
-
-	#for k in range(0, 3):
-		#print newFrames[k]
 	
 	outfile.flush()
   	outfile.close()
@@ -292,33 +230,40 @@ def spatialPredictiveDecodingOption5(frames, output_file_name):
 	return newFrames
 
     
-def decodeVideo(frames, input_file, output_video_full_path):
+def decodeVideo(frames,fullPath,width,height,outputVideoFileName):
+
 	size = len(frames)
-	frameRate=30
-	width = 10
-	height = 10
+  frameRate=30
+  fourcc=-1
 
-	output_file_name = input_file+"decoded.txt"
+  cap = cv2.VideoCapture(fullPath)
+  outVideoFile=None
+  if cap.isOpened:
+    if cv2.__version__=='3.0.0':
+      frameRate=cap.get(cv2.CAP_PROP_FPS)
+      fourcc=cap.get(cv2.CAP_PROP_FOURCC)
+    else:
+      frameRate=cap.get(cv2.cv.CV_CAP_PROP_FPS)
+      fourcc=cap.get(cv2.cv.CV_CAP_PROP_FOURCC)
 
-	#outfile = open( output_file_name, 'w' )
-
-	#fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V') #this doesn't work on mac
-	fourcc = cv2.cv.CV_FOURCC('I', 'Y', 'U', 'V')
-
-	out = cv2.VideoWriter(output_video_full_path, fourcc, frameRate,(width,height))
-
-	for x in range(0, size):
-		frame = np.array(frames[x], dtype=np.uint8)
-		cv2.imshow("Decoded Y channel",frame)
-		c = cv2.waitKey(1)
-		if 'q' == chr(c & 255):
-			break
-	out.release()
-	cv2.destroyAllWindows()
-
-	#outfile.flush()
-	#outfile.close()
-
+  #fourcc = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
+  #fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+  #fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V')
+  
+  outVideoFile = cv2.VideoWriter(outputVideoFileName, int(fourcc), frameRate,(width,height))
+  for x in range(0,size): 
+      frame=np.array(frames[x], dtype=np.uint8)
+      u=np.zeros((width,height), dtype=np.uint8)
+      v=np.zeros((width,height), dtype=np.uint8)
+      yuvImage=cv2.merge((frame,u,v))
+      rgbImage = cv2.cvtColor(yuvImage, cv2.COLOR_YUV2BGR)
+      cv2.imshow("Decoded Y channel",yuvImage)
+      outVideoFile.write(rgbImage)
+      c = cv2.waitKey(1)
+      if 'q' == chr(c & 255):
+        break     
+  outVideoFile.release()    
+  cv2.destroyAllWindows()
 
 
 
@@ -327,6 +272,13 @@ def main():
 	
 	#txt_file_name = raw_input("Enter the video file name:\n")
 	#txt_file_name = "1.mp4_5.spc"
+	width=10
+  height=10
+  fileSuffix=".mp4"
+  videoDir = raw_input("Enter the video file directory:\n")
+  videoFileName=raw_input("Enter the video file name:\n")  
+  fullPath = r'{0}/{1}'.format(videoDir,videoFileName+fileSuffix)
+	outputFileName=r'{0}_{1}_out{2}'.format(videoFileName,optionNumber,fileSuffix)
 
 	txt_file_name = raw_input("Enter the .spc file you would like to decode:\n")
 
@@ -335,7 +287,7 @@ def main():
   	print "Press 2 for Predictor A Decoder"
   	print "Press 3 for Predictor B Decoder"
   	print "Press 4 for Predictor C Decoder"
-  	print "Press 5 for Alpha-based Predictor Decoder (Doesn't currently work)"
+  	print "Press 5 for Alpha-based Predictor Decoder"
 
   	option_number=raw_input("Enter the option number:\n")
 
@@ -373,12 +325,6 @@ def main():
 			newframe.append(row)
 		newFrames.append(newframe)
 
-	#spatialPredictiveDecodingOption2(newFrames)
-	#spatialPredictiveDecodingOption4(newFrames)
-
-	#for k in range(0, 3):
-		#print newFrames[k]
-
 	finalFrames = []
 
 	if option_number == '1':
@@ -398,16 +344,9 @@ def main():
 	output_video_full_path='output.avi'
 
 	if finalFrames != None:
-		decodeVideo(finalFrames, txt_file_name, output_video_full_path)
+		
 
-
-
-
-
-
-
-
-
+		decodeVideo(frames,fullPath,width,height,outputFileName)
 
 
 

@@ -10,7 +10,7 @@ def main():
   videoDir = raw_input("Enter the video file directory:\n")
   videoFileName=raw_input("Enter the video file name:\n")  
   optionNumber=raw_input("Enter the option number:\n")
-  fullPath = r'{0}\{1}'.format(videoDir,videoFileName+fileSuffix)
+  fullPath = r'{0}/{1}'.format(videoDir,videoFileName+fileSuffix)
   inputFileName=r'{0}_{1}.tpc'.format(videoFileName,optionNumber)
   outputFileName=r'{0}_{1}_out{2}'.format(videoFileName,optionNumber,fileSuffix)
 
@@ -61,11 +61,15 @@ def decodeVideo(frames,fullPath,width,height,outputVideoFileName,inputFileName):
   #fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V')
   
   outVideoFile = cv2.VideoWriter(outputVideoFileName, int(fourcc), frameRate,(width,height))
-  for x in range(0,frameSize[0]):    
+  for x in range(0,frameSize[0]): 
       frame=np.array(np.array(frames[x][:]).reshape(width,height), dtype=np.uint8)
-      cv2.imshow("Decoded Y channel",frame)
+      u=np.zeros((width,height), dtype=np.uint8)
+      v=np.zeros((width,height), dtype=np.uint8)
+      yuvImage=cv2.merge((frame,u,v))
+      rgbImage = cv2.cvtColor(yuvImage, cv2.COLOR_YUV2BGR)
+      cv2.imshow("Decoded Y channel",yuvImage)
       outfile.write(" ".join(map(str,frames[x][:]))+"\n")
-      outVideoFile.write(frame)
+      outVideoFile.write(rgbImage)
       c = cv2.waitKey(1)
       if 'q' == chr(c & 255):
         break     
