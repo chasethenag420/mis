@@ -257,7 +257,7 @@ def decodeVideo(frames,fullPath,width,height,outputVideoFileName):
       v=np.ones((width,height), dtype=np.uint8)*128
       yuvImage=cv2.merge((frame,u,v))
       rgbImage = cv2.cvtColor(yuvImage, cv2.COLOR_YUV2BGR)
-      cv2.imshow("Decoded Y channel",yuvImage)
+      cv2.imshow("Decoded Y channel",rgbImage)
       outVideoFile.write(rgbImage)
       c = cv2.waitKey(1)
       if 'q' == chr(c & 255):

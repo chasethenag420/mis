@@ -4,10 +4,11 @@ import numpy as np
 import os
 import math
 import struct
+from decimal import Decimal
 
 hex2bin = dict('{:x} {:04b}'.format(x,x).split() for x in range(16))
 bin2hex = dict('{:b} {:x}'.format(x,x).split() for x in range(16))
- 
+
 def float_dec2bin(d):
   neg = False
   if d < 0:
@@ -17,7 +18,7 @@ def float_dec2bin(d):
   p = hx.index('p')
   bn = ''.join(hex2bin.get(char, char) for char in hx[2:p])
   return (('-' if neg else '') + bn.strip('0') + hx[p:p+2] + bin(int(hx[p+2:]))[2:])
- 
+
 def float_bin2dec(bn):
   neg = False
   if bn[0] == '-':
@@ -56,7 +57,7 @@ def compression_model_components(compression_model_code) :
 # gets the video data contained in the quantized file  - need to finish once have info about task 3 output
 def get_file(full_path):
   inputList=[]
-  inFile = open( full_path ) 
+  inFile = open( full_path )
   for line in inFile:
     inputList.append(list(map(int,line.split())))
 #    inputList.append(list(map(float,line.split())))
@@ -69,10 +70,10 @@ def get_file(full_path):
 
 # convert the image to binary without any compression
 def no_compression(input_image, output_image):
-  return input_image
   pixel = ''                            # initialize variable for binary conversion
   for i in np.nditer(input_image):                # traverse the image array and
     pixel = bin(i)[2:]                      # convert each value in the image to binary
+    #pixel =float_dec2bin(i)
     output_image = np.append(output_image, pixel.zfill(8))    # padd it to 8 digits and add to the output image
   output_image = np.reshape(output_image, input_image.shape)    # make the output array the same shape as the input array
   return output_image
@@ -101,7 +102,7 @@ def create_output_image_shannon(input_image, output_image, symbol_dictionary):
     for h in np.nditer(output_image, op_flags=['readwrite']): # traverse the output image as read/writeable
       if int(h.tolist()) == symbol[0]:            # for each value in the image that matches the dictionary entry
         h[...] = symbol[2]                  # change the value to its compression symbol
-  return output_image                       # and return the compressed image
+  return output_image                       # and return the compressed imagev
 
 # recursive Shannon-Fano algorithm to create value symbols
 def shannon_fano_algorithm(symbol_dictionary, top_index, bottom_index):
@@ -153,7 +154,7 @@ def binary_conversion(output_image):
 
 # Create LZW String Table
 def create_string_table(input_image, symbol_dictionary, string_table):
-  symbol_dictionary = create_symbol_dictionary(input_image, symbol_dictionary)  # create the 
+  symbol_dictionary = create_symbol_dictionary(input_image, symbol_dictionary)  # create the
   code = 1                                    # initialize the code counter
   for i in range(len(symbol_dictionary)):                     # traverse the symbol dictionary
     row = symbol_dictionary[i]                          # get each entry
@@ -170,8 +171,8 @@ def create_output_image(input_image, symbol_dictionary, string_table, output_ima
   c = ''                                        # initialize c
   sc = ''                                       # initialize sc
   found = 0                                     # initialize found to 0
-  new_code = len(string_table) + 1                          # new code is one more than the length of the current string table
   string_table = create_string_table(input_image, symbol_dictionary, string_table)  # create the string table
+  new_code = len(string_table)+1                  # new code is one more than the length of the current string table
   height, width = input_image.shape                         # get the shape of the input image
   for i in range(height):                               # traverse the image array row by row
     row = input_image[i,:]                              # and extract each row
@@ -185,6 +186,7 @@ def create_output_image(input_image, symbol_dictionary, string_table, output_ima
         if string_row[1] == sc:                         # if sc already exists in the string table
           s = sc + ''                             # replace s with sc
           found = 1                             # and set found to 1
+          break
       if found == 0:                                # if found == 0 (sc was not found)
         for l in range(len(string_table)):                    # traverse the string table
           string_row2 = string_table[l]                   # get the current entry
@@ -193,6 +195,7 @@ def create_output_image(input_image, symbol_dictionary, string_table, output_ima
               row_code = [string_row2[0]]                 # set the code for s as the initial value in the output code
             else:                             # otherwise
               row_code.append(string_row2[0])               # add the code for s to the output code with a space
+            break
         string_table.append((new_code, sc))                   # add sc to the string table
         s = c + ''                                # replace the value of s with the value of c (advance to the next pixel)
         new_code = new_code + 1                         # increment new code
@@ -201,6 +204,7 @@ def create_output_image(input_image, symbol_dictionary, string_table, output_ima
       string_row3 = string_table[m]                       # for each entry
       if string_row3[1] == s:                           # if the entry's string matches s
         row_code.append(string_row3[0])                     # add the code for s to the row code
+        break
     if not output_image:                              # if the output image is empty
       output_image = [row_code]                     # set the row code as its initial entry
     else:                                     # otherwise
@@ -236,12 +240,12 @@ def arithmetic_compression(input_image, symbol_dictionary, arith_freq_list, outp
   arith_freq_list = get_symbol_frequency(input_image, symbol_dictionary, arith_freq_list)   # get each symbol probabilities, starting range low and starting range high
   height, width = input_image.shape                             # get the shape of the input image
   range_low = 0.0                                          # initialize range low
-  range_high = 0.0                                         # initialize range high                                     
+  range_high = 0.0                                         # initialize range high
   for i in range(height):                                   # traverse the image array row by row
     low = 0.0                                       # reset low variable
     high = 1.0                                        # reset high variable
     s_range = 1.0                                     # reset range variable
-    row_code = 0.0                                      # reset the row code
+    row_code = 0.0                                     # reset the row code
     row_binary = ''                                     # reset the row's binary representation
     r = 1                                         # reset row code build counter
     row = input_image[i,:]                                  # and extract each row
@@ -252,9 +256,10 @@ def arithmetic_compression(input_image, symbol_dictionary, arith_freq_list, outp
         if symbol == current_symbol[0]:                         # when you find it
           range_low = current_symbol[2]                       # get the range low
           range_high = current_symbol[3]                        # and the range high
+      s_range = high - low
       high = low + s_range * range_high                         # create the new low, high and range -
       low = low + s_range * range_low                           #   formulas from page 206
-      s_range = high - low                                #   of the textbook
+                                      #   of the textbook
     while row_code < low:                                 # while row code value is smaller than the final range low
       current_try = row_code + (1/float(2**r))                      # add the rth binary fractional bit
       if current_try > high:                                # if it makes the value higher than the range high
@@ -271,48 +276,62 @@ def arithmetic_compression(input_image, symbol_dictionary, arith_freq_list, outp
 
 def create_output_file_no_compression(input_image,output_file_name):
   outfile = open( output_file_name,'w' )
-  
+
   for i in input_image.tolist():
     outfile.write(" ".join(map(str,i))+"\n")
-  
+
   outfile.flush()
   outfile.close()
 
 def create_output_file_shannon_fano(symbol_dictionary,output_image,output_file_name):
   outfile = open( output_file_name,'w' )
-  outfile.write(str(symbol_dictionary)+"\n")
+  input_key=[]
+  for symbol in symbol_dictionary:
+    outfile.write(" ".join(map(str,symbol[:2]))+",")
+    #input_key.append(symbol[:2])
+  outfile.write("\n")
   for i in output_image.tolist():
-    outfile.write(str(i))
-  
+    outfile.write(" ".join(map(str,i))+"\n")
+
   outfile.flush()
   outfile.close()
 
 def create_output_file_lzw(string_table, output_image, output_file_name):
   outfile = open( output_file_name,'w' )
-  outfile.write(str(string_table)+"\n")
+  input_key=[]
+  for symbol in string_table:
+    outfile.write(" ".join(map(str,symbol[:2]))+",")
+    #input_key.append(symbol[:2])
+  outfile.write("\n")
   for i in output_image:
-    outfile.write(str(i))
-  
+    outfile.write(" ".join(map(str,i))+"\n")
+
   outfile.flush()
   outfile.close()
 
-def create_output_file_arithmetic(arith_freq_list, output_image, output_file_name):
+def create_output_file_arithmetic(arith_freq_list, output_image, output_file_name,input_image):
   outfile = open( output_file_name,'w' )
-  outfile.write(str(arith_freq_list)+"\n")
+  input_key=[]
+  for symbol in arith_freq_list:
+    outfile.write(" ".join(map(str,symbol[:2]))+",")
+    #input_key.append(symbol[:2])
+  outfile.write("\n")
+  height, width = input_image.shape
+  outfile.write(str(width)+"\n")
   for i in output_image:
-    outfile.write(i+"\n")
-  
+    outfile.write(str(i)+"\n")
+
   outfile.flush()
   outfile.close()
 
 def main():
-  
+
   symbol_dictionary = []
   string_table = []
   arith_freq_list = []
   output_image = []
   output_key = []
-  '''
+  
   # read the quantization file path from user input
   file_dir = raw_input("Enter the path of the error quantization file:\n")
   print 'The error quantization file will be read from %s directory' % file_dir
@@ -327,14 +346,13 @@ def main():
   Press 3 for Dictionary encoding with LZW coding \n
   Press 4 for Arithmetic coding \n
   Model: """)
-  '''
-  full_path=r'1_1_1.tpq'
-  file_name='1_1_1.tpq'
-  compression_model_code='3'
-  
+  #full_path=r'1_1_1.tpq'
+  #file_name='1_1_1.tpq'
+  #compression_model_code='3'
+
   suffix=None
   input_file_name_split=file_name.split('.')
-  
+
   if input_file_name_split[1]=="tpq":
     suffix=compression_model_code+".tpv"
   else:
@@ -342,19 +360,21 @@ def main():
 
   output_file_name=input_file_name_split[0]+"_"+suffix
 
-  
+
   compression_model = compression_model_components(compression_model_code)
   print "You have selected the following compression model: " + compression_model + "\n"
   input_image = get_file(full_path)
+  #input_image=np.array([[1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2,1,2,3,1,1,1,1,2,2,2]])
+
   # no compression
   if compression_model_code == '1':
     output_image = no_compression(input_image, output_image)
-    create_output_file_no_compression(input_image,output_file_name)                                 # create the output image without any compression
+    create_output_file_no_compression(output_image,output_file_name)                                 # create the output image without any compression
     #create_output_file(compression_model_code, symbol_dictionary, arith_freq_list, string_table, output_image, file_name)    # create the output file
   # Shannon-Fano encoding
   if compression_model_code == '2':
     output_image, symbol_dictionary = shannon_fano_compression(input_image, symbol_dictionary, output_image)          # create the output image using the symbol dictionary
-    create_output_file_shannon_fano(symbol_dictionary,output_image,output_file_name) 
+    create_output_file_shannon_fano(symbol_dictionary,output_image,output_file_name)
     #create_output_file(compression_model_code, symbol_dictionary, arith_freq_list, string_table, output_image, file_name)    # create the output file
   # Dictionary/LZW encoding
   if compression_model_code == '3':
@@ -363,11 +383,8 @@ def main():
   # Arithmetic encoding
   if compression_model_code == '4':
     output_image, arith_freq_list = arithmetic_compression(input_image, symbol_dictionary, arith_freq_list, output_image)   # create the output image code using Arithmetic encoding
-    create_output_file_arithmetic(arith_freq_list, output_image, output_file_name)
+    create_output_file_arithmetic(arith_freq_list, output_image, output_file_name,input_image)
     #create_output_file(compression_model_code, symbol_dictionary, arith_freq_list, string_table, output_image, file_name)   # create the output file
-  print output_image
-#####NEED TO FINISH#####
-# save file
-# display file creation and total distortion
+
 
 main()

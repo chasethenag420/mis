@@ -2,10 +2,17 @@ import cv2
 import sys
 import numpy as np
 import os
+from sys import platform as _platform
 
 def main():
   width=10
   height=10
+  if _platform == "linux" or _platform == "linux2":
+    slash = '/'
+  elif _platform == "darwin":
+    slash = '/'
+  elif _platform == "win32":
+    slash = '\\'
   
   fileSuffix=".mp4"
   videoDir = raw_input("Enter the video file directory:\n")
@@ -14,7 +21,7 @@ def main():
   yMin=int(raw_input("Enter the y coordiante:\n"))
   optionNumber=raw_input("Enter the option number:\n")
 
-  fullPath = r'{0}/{1}'.format(videoDir,videoFileName+fileSuffix) 
+  fullPath = '{0}{2}{1}'.format(videoDir,videoFileName+fileSuffix,slash) 
   outputFileName=r'{0}_{1}.tpc'.format(videoFileName,optionNumber)
 
   frames = extract_video_portion(fullPath,xMin,yMin,width,height)
