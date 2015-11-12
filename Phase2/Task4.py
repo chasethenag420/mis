@@ -23,13 +23,13 @@ def compression_model_components(compression_model_code) :
     compression_model = "no compression"
   elif compression_model_code == '2':
     compression_model = "Shannon-Fano"
-  elif compression_model_code == '3':
-    compression_model = "Dictionary/LZW"
-  elif compression_model_code == '4':
-    compression_model = "Arithmetic"
   elif compression_model_code == '5':
-    compression_model = "LZW"
+    compression_model = "Dictionary/LZW"
   elif compression_model_code == '6':
+    compression_model = "Arithmetic"
+  elif compression_model_code == '3':
+    compression_model = "LZW"
+  elif compression_model_code == '4':
     compression_model = "Arithmetic"
   else :
     print 'Not a valid compression model. Rerun program and choose a selection between 1 to 6\n'
@@ -379,17 +379,17 @@ def main():
     create_output_file_shannon_fano(symbol_dictionary,output_image,output_file_name)
     #create_output_file(compression_model_code, symbol_dictionary, arith_freq_list, string_table, output_image, file_name)    # create the output file
   # Dictionary/LZW encoding
-  if compression_model_code == '3':
+  if compression_model_code == '5':
     output_image, string_table = create_output_image(input_image, symbol_dictionary, string_table, output_image)        # create the output image using the symbol dictionary
     create_output_file_lzw(string_table, output_image, output_file_name)   # create the output file
   # Arithmetic encoding
-  if compression_model_code == '4':
+  if compression_model_code == '6':
     output_image, arith_freq_list = arithmetic_compression(input_image, symbol_dictionary, arith_freq_list, output_image)   # create the output image code using Arithmetic encoding
     create_output_file_arithmetic(arith_freq_list, output_image, output_file_name,input_image)
     #create_output_file(compression_model_code, symbol_dictionary, arith_freq_list, string_table, output_image, file_name)   # create the output file
-  if compression_model_code == '5':
+  if compression_model_code == '3':
     lzw.writebytes(output_file_name, lzw.compress(b"".join(lzw.readbytes(full_path))))
-  if compression_model_code == '6':
+  if compression_model_code == '4':
     ar = arcode.ArithmeticCode(False)
     ar.encode_file(full_path, output_file_name)
 

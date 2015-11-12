@@ -63,7 +63,7 @@ def get_file(full_path, compression_model_code, input_image, input_key):
   # Shannon_fano input image - input_image = np.array([], str)
   # LZW/Dictionary input image - input_image = []
   # Arithmetic input image - input_image = []
-  inFile = open( full_path,'rb' )
+  inFile = open( full_path,'r' )
   input_key=[]
   inputList=[]
   temp=[]
@@ -85,7 +85,7 @@ def get_file(full_path, compression_model_code, input_image, input_key):
       input_key.append(tuple(map(int,i.split())))
 
     input_key=input_key[:len(input_key)-1]
-  elif compression_model_code=='3':
+  elif compression_model_code=='5':
     for line in inFile:
       if count==0:
         temp=line.split(',')
@@ -97,7 +97,7 @@ def get_file(full_path, compression_model_code, input_image, input_key):
     for i in temp:
       input_key.append(tuple(map(int,i.split())))
 
-  elif compression_model_code=='4':
+  elif compression_model_code=='6':
     for line in inFile:
       if count==0:
         temp=line.split(',')
@@ -351,17 +351,19 @@ def main():
     output_image = shannon_fano_decompression(input_image, input_key, symbol_dictionary, output_image)    # create the output image using the symbol dictionary
     create_out_file_no_compression(output_image,output_file_name)
   # Dictionary/LZW encoding
-  elif compression_model_code == '3':
+  elif compression_model_code == '5':
     output_image = dictionary_lzw_decompression(input_image, input_key, string_table, output_image)     # create the output image using the symbol dictionary
     create_out_file_no_compression(output_image,output_file_name)
   # Arithmetic encoding
-  elif compression_model_code == '4':
+  elif compression_model_code == '6':
     output_image = arithmetic_decompression(input_image, input_key, arith_freq_list, output_image,width)      # create the output image code using Arithmetic encoding
     create_out_file_no_compression(output_image,output_file_name)
-  elif compression_model_code == '5':
-    decoded = open(output_file_name, 'wb')
-    decoded.write(b"".join(lzw.decompress(b"".join(lzw.readbytes(full_path)))))
-  elif compression_model_code == '6':
+  elif compression_model_code == '3':
+    decoded = open(output_file_name, 'w')
+    decoded.write(b"".join(lzw.decompress(lzw.readbytes(full_path))))
+    decoded.flush()
+    decoded.close()
+  elif compression_model_code == '4':
     ar = arcode.ArithmeticCode(False)
     ar.decode_file(full_path, output_file_name)
 
@@ -371,7 +373,7 @@ def main():
   # Display the image
   # Exit program
   # if selection_code == 2:
-
+  print 'input file size: {0}'.format(get_file_size(full_path))
   if input_file_name_split[1]=="tpv":
     decodeTPC(output_file_name)
   else:
@@ -380,6 +382,7 @@ def main():
 
   origVideo=getFileData(getInputFileName(output_file_name))
   decodeVideo=getFileData(output_file_name+"decoded.txt")
+
   print 'Original video size: {0}'.format(get_file_size(getInputFileName(output_file_name)))
   print 'Decoded video size: {0}'.format(get_file_size(output_file_name+"decoded.txt"))
   print 'Signal to noise ratio(PSNR): {0}'.format(getPSNR(origVideo, decodeVideo))
@@ -439,7 +442,7 @@ def decodeTPC(inputFileName):
 
   outputFileName=r'{0}_{1}_out{2}'.format(videoFileName,optionNumber,fileSuffix)
 
-  inFile = open( inputFileName )
+  inFile = open( inputFileName,'r' )
   frames= None
 
   if inputFileName != None:
@@ -590,12 +593,12 @@ def tpcDecodingOption4(inFile):
               alpha1=1.0
               alpha2=0.0
           decodedSignal.append(int(round(value+ alpha1*decodedSignal[k-1]  + alpha2*decodedSignal[k-2])))
+    if(len(decodedSignal)>0):
+      if lines==None:
+        lines=np.array(decodedSignal)
 
-    if lines==None:
-      lines=np.array(decodedSignal)
-
-    else:
-      lines=np.column_stack((lines,decodedSignal))
+      else:
+        lines=np.column_stack((lines,decodedSignal))
   return lines
 
 def spatialPredictiveDecodingOption1(frames, output_file_name):
