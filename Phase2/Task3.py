@@ -5,10 +5,10 @@ import os
 
 def main():
   option_number=raw_input("Enter the option number:\n")
-  input_file_name=raw_input("Enter the input file name of tpc or spc:\n")  
+  input_file_name=raw_input("Enter the input file name of tpc or spc:\n")
   input_file_name_split=input_file_name.split('.')
   suffix=None
-  
+
   if input_file_name_split[1]=="tpc":
     suffix=option_number+".tpq"
   else:
@@ -17,17 +17,17 @@ def main():
   output_file_name=input_file_name_split[0]+"_"+suffix
 
   current_working_dir = os.getcwd()
-  infile = open( input_file_name ) 
-  outfile = open( output_file_name,'w' ) 
-  
-  frames= None 
+  infile = open( input_file_name )
+  outfile = open( output_file_name,'w' )
+
+  frames= None
 
   if input_file_name != None:
     if option_number=='1':
-      frames=quantizationOption1(infile,outfile) 
+      frames=quantizationOption1(infile,outfile)
     elif option_number=='2':
       frames=quantizationOption2(infile,outfile)
-    else: 
+    else:
       print "Input not valid"
       quit()
   else:
@@ -39,14 +39,14 @@ def main():
   outfile.flush()
   outfile.close()
 
-  
+
 def quantizationOption1(infile,outfile):
-   
+
   for line in infile:
     outfile.write(line)
-    
+
 def quantizationOption2(infile,outfile):
-   
+
   numOfBits=int(raw_input("Enter number of bits m: "))
   numOfPartitions = 2 ** numOfBits
   for line in infile:
@@ -60,7 +60,7 @@ def quantizationOption2(infile,outfile):
       partitions = np.arange(minValue, maxValue+partitionSize, partitionSize)
     else :
       partitions = np.ones(numOfPartitions+1) * minValue
-    
+
     binIndexes=np.digitize(np.array(signal),partitions)
     representative=[]
     for value in range(1,len(partitions)):
@@ -74,7 +74,7 @@ def quantizationOption2(infile,outfile):
         index= i-2
       else:
         index=i-1
-      quantized.append(representative[index])
+      quantized.append(int(representative[index]))
     outfile.write(" ".join(map(str,quantized))+"\n")
 
 main()

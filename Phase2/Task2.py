@@ -2,10 +2,18 @@ import cv2
 import sys
 import numpy as np
 import os
+from sys import platform as _platform
 
 def main():
   width=10
   height=10
+  if _platform == "linux" or _platform == "linux2":
+    slash = '/'
+  elif _platform == "darwin":
+    slash = '/'
+  elif _platform == "win32":
+    slash = '\\'
+  
 
   #video_dir = "sampleDataP1"
   #video_file_name = "1.mp4"
@@ -26,14 +34,11 @@ def main():
   option_number=raw_input("Enter the option number:\n")
 
   full_video_name = video_file_name + ".mp4"
-  full_path = r'{0}/{1}'.format(video_dir,full_video_name) 
-  output_video_file_name='extracted_'+full_video_name
-  output_video_full_path=r'{0}/{1}'.format(video_dir,output_video_file_name)
-  output_video_full_path='output.mp4'
+  full_path = r'{0}{2}{1}'.format(video_dir,full_video_name,slash) 
   
   output_file_name=r'{0}_{1}.spc'.format(video_file_name,option_number)
 
-  frames = extract_video_portion(full_path,output_video_full_path,xMin,yMin,width,height)
+  frames = extract_video_portion(full_path,xMin,yMin,width,height)
 
   if frames != None:
     if option_number=='1':
@@ -57,7 +62,7 @@ def main():
   else:
     print "Some error while reading video file"
 
-def extract_video_portion(full_path,output_video_full_path,xMin,yMin,width,height):
+def extract_video_portion(full_path,xMin,yMin,width,height):
   # Constants for the crop size
   frames = None
 
@@ -205,7 +210,7 @@ def spatialPredictiveCodingOption4(frames,output_file_name,width,height):
             newRow.append(frames[k][0][0])
             extraError=extraError+frames[k][0][0]
         else:
-          newError = frames[k][i][j] - frames[k][i-1][j-1]
+          newError = int(frames[k][i][j]) - int(frames[k][i-1][j-1])
           error = error + newError
           newRow.append(newError)
       newFrame.append(newRow)
@@ -228,7 +233,8 @@ def spatialPredictiveCodingOption5(frames,output_file_name,width,height):
   frameCount = len(frames)
   current_working_dir = os.getcwd()
   outfile = open( output_file_name, 'w' )  
-  error = 0;
+  error = 0
+  extraError=0
   alpha1 = 0.33
   alpha2 = 0.33
   alpha3 = 0.33

@@ -9,12 +9,14 @@ def main():
   fileSuffix=".mp4"
   videoDir = raw_input("Enter the video file directory:\n")
   videoFileName=raw_input("Enter the video file name:\n")  
-  optionNumber=raw_input("Enter the option number:\n")
+  inputFileName=raw_input("Enter the input file name:\n")
+  optionNumberList=inputFileName.split('_')
+  optionNumber=optionNumberList[1]
   fullPath = r'{0}/{1}'.format(videoDir,videoFileName+fileSuffix)
-  inputFileName=r'{0}_{1}.tpc'.format(videoFileName,optionNumber)
+  
   outputFileName=r'{0}_{1}_out{2}'.format(videoFileName,optionNumber,fileSuffix)
 
-  inFile = open( inputFileName ) 
+  inFile = open( inputFileName+".tpy" ) 
   frames= None
 
   if inputFileName != None:
@@ -66,7 +68,7 @@ def decodeVideo(frames,fullPath,width,height,outputVideoFileName,inputFileName):
       v=np.ones((width,height), dtype=np.uint8)*128
       yuvImage=cv2.merge((frame,u,v))
       rgbImage = cv2.cvtColor(yuvImage, cv2.COLOR_YUV2BGR)
-      cv2.imshow("Decoded Y channel",yuvImage)
+      cv2.imshow("Decoded Y channel",rgbImage)
       outfile.write(" ".join(map(str,frames[x][:]))+"\n")
       outVideoFile.write(rgbImage)
       c = cv2.waitKey(1)
