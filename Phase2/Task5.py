@@ -371,17 +371,18 @@ def main():
   # Display the image
   # Exit program
   # if selection_code == 2:
-  print 'Original video size: {0}'.format(get_file_size(getInputFileName(output_file_name)))
-  print 'Decoded video size: {0}'.format(get_file_size(output_file_name))
-  origVideo=getFileData(getInputFileName(output_file_name))
-  decodeVideo=getFileData(output_file_name)
-
-  print 'Signal to noise ratio(PSNR): {0}'.format(getPSNR(origVideo, decodeVideo))
 
   if input_file_name_split[1]=="tpv":
     decodeTPC(output_file_name)
   else:
     spatialDecode(output_file_name)
+
+
+  origVideo=getFileData(getInputFileName(output_file_name))
+  decodeVideo=getFileData(output_file_name+"decoded.txt")
+  print 'Original video size: {0}'.format(get_file_size(getInputFileName(output_file_name)))
+  print 'Decoded video size: {0}'.format(get_file_size(output_file_name+"decoded.txt"))
+  print 'Signal to noise ratio(PSNR): {0}'.format(getPSNR(origVideo, decodeVideo))
 
 def getFileData(filename):
   inFile = open( filename,'r' )
@@ -393,7 +394,7 @@ def getFileData(filename):
 def getInputFileName(outFileName):
   output_file_name_split=outFileName.split('.')
   if output_file_name_split[1]=="tpy":
-    suffix=".tpc"
+    suffix=".spc"
   else:
     suffix=".spc"
 
@@ -883,7 +884,7 @@ def spatialDecode(inputFileName):
 
   option_number=optionNumber
 
-  output_file_name=r'{0}_{1}_decoded.txt'.format(txt_file_name,optionNumber)
+  output_file_name=inputFileName+"decoded.txt"
 
   count = 0
 
