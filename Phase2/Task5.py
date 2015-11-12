@@ -1,7 +1,10 @@
 import sys
 import cv2
 import numpy as np
-
+import lzw
+import arcode
+from sys import platform as _platform
+import os
 import math
 import struct
 import ast
@@ -46,6 +49,13 @@ def get_compression_model(file_name):
   compression_model_code=input_file_name_split[0]
   return compression_model_code
 
+def get_file_size(path):
+  fileHandle = open(path, 'rb')
+  byteArr = bytearray(fileHandle.read(os.path.getsize(path)))
+  fileHandle.close()
+  fileSize = len(byteArr)
+  return fileSize
+
 #####NEED TO FINISH#####
 # gets the data contained in the compression file  - need to finish once have info about task 3 output
 def get_file(full_path, compression_model_code, input_image, input_key):
@@ -53,7 +63,7 @@ def get_file(full_path, compression_model_code, input_image, input_key):
   # Shannon_fano input image - input_image = np.array([], str)
   # LZW/Dictionary input image - input_image = []
   # Arithmetic input image - input_image = []
-  inFile = open( full_path )
+  inFile = open( full_path,'rb' )
   input_key=[]
   inputList=[]
   temp=[]
@@ -108,15 +118,15 @@ def get_file(full_path, compression_model_code, input_image, input_key):
 
 # convert the image from binary without any compression
 def no_compression(input_image, output_image):
-  temp=[]
-  for i,value in enumerate(input_image):               # traverse the image array and
-    temp = [int(x, 2) for x in value]                 # convert each binary value in the image to an integer
-    if not output_image:
-      output_image=[temp]
-    else:
-      output_image.append(temp)               # and add to the output image
-  output_image=np.asarray(output_image,dtype=np.uint8)
-  return output_image
+  #temp=[]
+  #for i,value in enumerate(input_image):               # traverse the image array and
+  #  temp = [int(x, 2) for x in value]                 # convert each binary value in the image to an integer
+  #  if not output_image:
+  #    output_image=[temp]
+  #  else:
+  #    output_image.append(temp)               # and add to the output image
+  #output_image=np.asarray(output_image,dtype=np.uint8)
+  return input_image
 
 
 # create the output image using the symbol_dictionary
@@ -134,9 +144,9 @@ def create_symbol_dictionary(input_key, symbol_dictionary):
   for i in range(len(input_key)):                           # traverse the input key
     single_key = input_key[i]                           # get each key entry
     if not symbol_dictionary:                           # if the symbol frequency list is empty
-      symbol_dictionary = [(int(single_key[0]), int(single_key[1]), '')]      # set the key entry as its initial value and a blank place holder for their compression symbol
+      symbol_dictionary = [(single_key[0], single_key[1], '')]      # set the key entry as its initial value and a blank place holder for their compression symbol
     else:                                     # otherwise
-      symbol_dictionary.append((int(single_key[0]), int(single_key[1]), ''))    # add the key entry to the dictionary with a blank place holder for their compression symbol
+      symbol_dictionary.append((single_key[0], single_key[1], ''))    # add the key entry to the dictionary with a blank place holder for their compression symbol
   return symbol_dictionary
 
 # recursive Shannon-Fano algorithm to create value symbols
@@ -294,7 +304,7 @@ def main():
   arith_freq_list = []    # initialize arithmetic frequency list
   output_image = []     # initialize output image
 
-  '''
+
   # Get selection from user input
   selection_code = raw_input("""***File Viewer***\n
   Select one of the following:
@@ -303,16 +313,16 @@ def main():
   Choice: """)
 
   # view file
-  if selection_code == 1:
+  if selection_code == '1':
     # read the quantization file path from user input
     file_dir = raw_input("Enter the path of the file:\n")
     print 'The image file will be read from %s directory' % file_dir
     file_name = raw_input("Enter the image file name:\n")
     full_path = r'{0}\{1}'.format(file_dir,file_name)
-  '''
 
-  full_path=r'1_1_1_3.tpv'
-  file_name='1_1_1_3.tpv'
+
+  #full_path=r'1_1_1_3.tpv'
+  #file_name='1_1_1_3.tpv'
 
   suffix=None
   input_file_name_split=file_name.split('.')
@@ -343,15 +353,587 @@ def main():
   # Dictionary/LZW encoding
   elif compression_model_code == '3':
     output_image = dictionary_lzw_decompression(input_image, input_key, string_table, output_image)     # create the output image using the symbol dictionary
+    create_out_file_no_compression(output_image,output_file_name)
   # Arithmetic encoding
   elif compression_model_code == '4':
     output_image = arithmetic_decompression(input_image, input_key, arith_freq_list, output_image,width)      # create the output image code using Arithmetic encoding
+    create_out_file_no_compression(output_image,output_file_name)
+  elif compression_model_code == '5':
+    decoded = open(output_file_name, 'wb')
+    decoded.write(b"".join(lzw.decompress(b"".join(lzw.readbytes(full_path)))))
+  elif compression_model_code == '6':
+    ar = arcode.ArithmeticCode(False)
+    ar.decode_file(full_path, output_file_name)
+
   else:
     print "Not valid input file"
-  print output_image
   #####NEED TO FINISH#####
   # Display the image
   # Exit program
   # if selection_code == 2:
+  print 'Original video size: {0}'.format(get_file_size(getInputFileName(output_file_name)))
+  print 'Decoded video size: {0}'.format(get_file_size(output_file_name))
+  origVideo=getFileData(getInputFileName(output_file_name))
+  decodeVideo=getFileData(output_file_name)
+
+  print 'Signal to noise ratio(PSNR): {0}'.format(getPSNR(origVideo, decodeVideo))
+
+  if input_file_name_split[1]=="tpv":
+    decodeTPC(output_file_name)
+  else:
+    spatialDecode(output_file_name)
+
+def getFileData(filename):
+  inFile = open( filename,'r' )
+  input_image=[]
+  for line in inFile:
+    input_image.append([int(float(a)) for a in line.split()])
+  return input_image
+
+def getInputFileName(outFileName):
+  output_file_name_split=outFileName.split('.')
+  if output_file_name_split[1]=="tpy":
+    suffix=".tpc"
+  else:
+    suffix=".spc"
+
+  output_file_name_split=outFileName.split('_')
+  fileName="{0}_{1}{2}".format(output_file_name_split[0],1,suffix)
+  return fileName
+
+def getPSNR(I1, I2):
+  I1=np.array(I1)
+  I2=np.array(I2)
+
+  s1 = cv2.absdiff(I1,I2)# |I1 - I2|
+  s1 = np.float32(s1) #convert to 32Float
+  s1 = cv2.multiply(s1, s1) # |I1 - I2|^2
+
+  s = cv2.sumElems(s1)#take the sum of the elements in each channel
+
+  sse = s[0] + s[1] + s[2] # sum channels
+
+  if (sse <= 1e-10):# return 0 if very small number
+    return 0
+  else:
+    mse = sse/(len(I1.shape) * I1.shape[0]*I1.shape[1])#total needs fixing
+    psnr = 10 * math.log10(255*255/mse)#Calculate PSNR
+    return psnr
+
+def decodeTPC(inputFileName):
+  width=10
+  height=10
+  fileSuffix=".mp4"
+  videoDir = raw_input("Enter the video file directory:\n")
+  videoFileName=raw_input("Enter the video file name:\n")
+  optionNumberList=inputFileName.split('_')
+  optionNumber=optionNumberList[1]
+  if _platform == "linux" or _platform == "linux2":
+    slash = '/'
+  elif _platform == "darwin":
+    slash = '/'
+  elif _platform == "win32":
+    slash = '\\'
+  fullPath = r'{0}{2}{1}'.format(videoDir,videoFileName+fileSuffix,slash)
+
+  outputFileName=r'{0}_{1}_out{2}'.format(videoFileName,optionNumber,fileSuffix)
+
+  inFile = open( inputFileName )
+  frames= None
+
+  if inputFileName != None:
+    if optionNumber=='1':
+      frames=tpcDecodingOption1(inFile)
+    elif optionNumber=='2':
+      frames=tpcDecodingOption2(inFile)
+    elif optionNumber=='3':
+      frames=tpcDecodingOption3(inFile)
+    elif optionNumber=='4':
+      frames=tpcDecodingOption4(inFile)
+    else:
+      print "Input not valid"
+      quit()
+  else:
+    print "Some error while reading video file"
+
+  if frames !=None:
+    decodeVideoTPC(frames,fullPath,width,height,outputFileName,inputFileName)
+
+  inFile.flush()
+  inFile.close()
+# frames: each row represent pixels in a frame which will be reshaped to width and height
+def decodeVideoTPC(frames,fullPath,width,height,outputVideoFileName,inputFileName):
+  frameSize=frames.shape
+  frameRate=30
+  fourcc=-1
+  print fullPath
+  print outputVideoFileName
+  cap = cv2.VideoCapture(fullPath)
+  outVideoFile=None
+  if cap.isOpened:
+    if cv2.__version__=='3.0.0':
+      frameRate=cap.get(cv2.CAP_PROP_FPS)
+      fourcc=cap.get(cv2.CAP_PROP_FOURCC)
+    else:
+      frameRate=cap.get(cv2.cv.CV_CAP_PROP_FPS)
+      fourcc=cap.get(cv2.cv.CV_CAP_PROP_FOURCC)
+
+  outputFileName=inputFileName+"decoded.txt"
+  outfile = open( outputFileName, 'w' )
+  #fourcc = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
+  #fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+  #fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V')
+  #fourcc = cv2.VideoWriter_fourcc('M','P','E','G')
+  outVideoFile = cv2.VideoWriter(outputVideoFileName, int(fourcc), frameRate,(width,height))
+  for x in range(0,frameSize[0]):
+      frame=np.array(np.array(frames[x][:]).reshape(width,height), dtype=np.uint8)
+      u=np.ones((width,height), dtype=np.uint8)*128
+      v=np.ones((width,height), dtype=np.uint8)*128
+      yuvImage=cv2.merge((frame,u,v))
+      rgbImage = cv2.cvtColor(yuvImage, cv2.COLOR_YUV2BGR)
+      cv2.imshow("Decoded Y channel",rgbImage)
+      outfile.write(" ".join(map(str,frames[x][:]))+"\n")
+      outVideoFile.write(rgbImage)
+      c = cv2.waitKey(1)
+      if 'q' == chr(c & 255):
+        break
+  outVideoFile.release()
+  cv2.destroyAllWindows()
+  print "Output saved to text "+outputFileName
+  outfile.flush()
+  outfile.close()
+
+
+def tpcDecodingOption1(inFile):
+
+  lines=None
+  for line in inFile:
+    if lines==None:
+      lines=np.array(list(map(int,line.split())))
+    else:
+      lines=np.column_stack((lines,list(map(int,line.split()))))
+  return lines
+
+
+def tpcDecodingOption2(inFile):
+  lines=None
+  for line in inFile:
+    encodedSignal = list(map(int,line.split()))
+    decodedSignal=[]
+    for index,value in enumerate(encodedSignal):
+      if index==0:
+        decodedSignal.append(value)
+      else:
+        decodedSignal.append(value+decodedSignal[index-1])
+
+    if lines==None:
+      lines=np.array(decodedSignal)
+
+    else:
+      lines=np.column_stack((lines,decodedSignal))
+  return lines
+
+
+def tpcDecodingOption3(inFile):
+  lines=None
+  for line in inFile:
+    encodedSignal = list(map(float,line.split()))
+    decodedSignal=[]
+    for index,value in enumerate(encodedSignal):
+      if index<=1:
+        decodedSignal.append(int(value))
+      else:
+        decodedSignal.append(int(value+decodedSignal[index-1]/float(2) + decodedSignal[index-2]/float(2)))
+
+    if lines==None:
+      lines=np.array(decodedSignal)
+
+    else:
+      lines=np.column_stack((lines,decodedSignal))
+  return lines
+
+def tpcDecodingOption4(inFile):
+  lines=None
+  alpha1=0.5
+  alpha2=0.5
+  for line in inFile:
+    encodedSignal = list(map(float,line.split()))
+    decodedSignal=[]
+    for k,value in enumerate(encodedSignal):
+      if k<=1:
+        decodedSignal.append(int(round(encodedSignal[k])))
+      else:
+        if k<=3:
+          alpha1=0.5
+          alpha2=0.5
+          decodedSignal.append(int(round(value+ alpha1*decodedSignal[k-1]  + alpha2*decodedSignal[k-2])))
+        else:
+          k1k2Diff = decodedSignal[k-2] - decodedSignal[k-4]
+          if k1k2Diff == 0:
+            alpha1=0.5
+            alpha2=0.5
+          else:
+            alpha1 = (decodedSignal[k-1] + decodedSignal[k-2]-decodedSignal[k-3]-decodedSignal[k-4])/float(k1k2Diff)
+            alpha2 = 1-alpha1
+
+            if alpha1>1 and alpha2>1:
+              alpha1=0.5
+              alpha2=0.5
+            elif alpha1<0 and alpha2<0:
+              alpha1=0.5
+              alpha2=0.5
+            elif alpha1<0 or alpha2>1:
+              alpha1=0.0
+              alpha2=1.0
+            elif alpha1 >1 or alpha2<0:
+              alpha1=1.0
+              alpha2=0.0
+          decodedSignal.append(int(round(value+ alpha1*decodedSignal[k-1]  + alpha2*decodedSignal[k-2])))
+
+    if lines==None:
+      lines=np.array(decodedSignal)
+
+    else:
+      lines=np.column_stack((lines,decodedSignal))
+  return lines
+
+def spatialPredictiveDecodingOption1(frames, output_file_name):
+  #no PC
+  outfile = open( output_file_name, 'w' )
+  frameCount = len(frames)
+
+  for k in range(0, frameCount):
+    for i in range(0, 10):
+      for j in range(0, 10):
+        outfile.write(str(frames[k][i][j]))
+        outfile.write(" ")
+    outfile.write("\n")
+
+
+  newFrames = np.array(frames)
+
+  outfile.flush()
+  outfile.close()
+  print "\nOutput saved to {0}\n".format(output_file_name)
+  return newFrames
+
+def spatialPredictiveDecodingOption2(frames, output_file_name):
+  frameCount = len(frames)
+  outfile = open( output_file_name, 'w' )
+
+  for k in range(0,frameCount):
+    newFrame = []
+    for i in range(0, 10):
+      newRow = []
+      for j in range(0, 10):
+        if(j == 0):
+          frames[k][i][j] = int(round(frames[k][i][j]))
+        else:
+          frames[k][i][j] = frames[k][i][j] + frames[k][i][j-1]
+          frames[k][i][j] = int(round(frames[k][i][j]))
+
+  for k in range(0, frameCount):
+    for i in range (0, 10):
+      for j in range(0, 10):
+        outfile.write(str(frames[k][i][j]))
+        outfile.write(" ")
+    outfile.write("\n")
+
+
+  newFrames = np.array(frames)
+
+  outfile.flush()
+  outfile.close()
+  print "\nOutput saved to {0}\n".format(output_file_name)
+  return newFrames
+
+
+def spatialPredictiveDecodingOption3(frames, output_file_name):
+  frameCount = len(frames)
+  current_working_dir = os.getcwd()
+  outfile = open( output_file_name, 'w' )
+
+  for k in range(0,frameCount):
+    newFrame = []
+    for i in range(0, 10):
+      newRow = []
+      for j in range(0, 10):
+        if(i == 0):
+          frames[k][i][j] = int(round(frames[k][i][j]))
+        else:
+          frames[k][i][j] = frames[k][i][j] + frames[k][i-1][j]
+          frames[k][i][j] = int(round(frames[k][i][j]))
+
+
+  for k in range(0, frameCount):
+    for i in range (0, 10):
+      for j in range(0, 10):
+        outfile.write(str(frames[k][i][j]))
+        outfile.write(" ")
+    outfile.write("\n")
+
+  newFrames = np.array(frames)
+
+  outfile.flush()
+  outfile.close()
+  print "\nOutput saved to {0}\n".format(output_file_name)
+  return newFrames
+
+
+
+def spatialPredictiveDecodingOption4(frames, output_file_name):
+  frameCount = len(frames)
+  current_working_dir = os.getcwd()
+  outfile = open( output_file_name, 'w' )
+
+  for k in range(0,frameCount):
+    newFrame = []
+    for i in range(0, 10):
+      newRow = []
+      for j in range(0, 10):
+        if i == 0 or j == 0:
+          if i == 0 and j != 0:
+            frames[k][i][j] = int(round(frames[k][0][j]))
+          elif i != 0 and j == 0:
+            frames[k][i][j] = int(round(frames[k][i][0]))
+          elif i == 0 and j == 0:
+            frames[k][i][j] = int(round(frames[k][0][0]))
+        else:
+          frames[k][i][j] = frames[k][i][j] + frames[k][i-1][j-1]
+          frames[k][i][j] = int(round(frames[k][i][j]))
+
+  for k in range(0, frameCount):
+    for i in range (0, 10):
+      for j in range(0, 10):
+        outfile.write(str(frames[k][i][j]))
+        outfile.write(" ")
+    outfile.write("\n")
+
+
+  newFrames = np.array(frames)
+
+  outfile.flush()
+  outfile.close()
+  print "\nOutput saved to {0}\n".format(output_file_name)
+  return newFrames
+
+def spatialPredictiveDecodingOption5(frames, output_file_name):
+  frameCount = len(frames)
+  current_working_dir = os.getcwd()
+  outfile = open( output_file_name, 'w' )
+
+  for k in range(0, frameCount):
+    for i in range(0, 10):
+      for j in range(0, 10):
+        if i == 0 or j == 0:
+          if i == 0 and j != 0:
+            frames[k][i][j] = int(round(frames[k][i][j]))
+          elif i != 0 and j == 0:
+            frames[k][i][j] = int(round(frames[k][i][j]))
+          elif i == 0 and j == 0:
+            frames[k][i][j] = int(round(frames[k][i][j]))
+        elif j == 1 or j == 2 or j == 3:
+          alpha1 = 0.33
+          alpha2 = 0.33
+          alpha3 = 0.33
+
+          predictorA = frames[k][i][j-1] * alpha1
+          predictorB = frames[k][i-1][j] * alpha2
+          predictorC = frames[k][i-1][j-1] * alpha3
+          totalPredictor = predictorA + predictorB + predictorC
+
+          frames[k][i][j] = frames[k][i][j] + totalPredictor
+          frames[k][i][j] = int(round(frames[k][i][j]))
+
+        else:
+          predictedValOne = frames[k][i][j-3]
+          predictedValOneA = frames[k][i][j-4]
+          predictedValOneB = frames[k][i-1][j-3]
+          predictedValOneC = frames[k][i-1][j-4]
+
+          predictedValTwo = frames[k][i][j-2]
+          predictedValTwoA = frames[k][i][j-3]
+          predictedValTwoB = frames[k][i-1][j-2]
+          predictedValTwoC = frames[k][i-1][j-3]
+
+          predictedValThree = frames[k][i][j-1]
+          predictedValThreeA = frames[k][i][j-2]
+          predictedValThreeB = frames[k][i-1][j-1]
+          predictedValThreeC = frames[k][i-1][j-2]
+
+          a = np.array([[predictedValOneA, predictedValOneB, predictedValOneC],[predictedValTwoA, predictedValTwoB, predictedValTwoC],[predictedValThreeA, predictedValThreeB, predictedValThreeC]])
+
+          b = np.array([predictedValOne, predictedValTwo, predictedValThree])
+
+          if np.linalg.cond(a) < 1/sys.float_info.epsilon:
+            x = np.linalg.solve(a, b)
+            alpha1 = x[0]
+            alpha2 = x[1]
+            alpha3 = x[2]
+
+            if alpha1 >= 0.0 and alpha1 < 1.0:
+              if alpha2 >= 0.0 and alpha2 < 1.0:
+                if alpha3 >= 0.0 and alpha3 < 1.0:
+                  sumAlpha = alpha1 + alpha2 + alpha3
+
+                  if sumAlpha != 1.0:
+                    alpha1 = 0.33
+                    alpha2 = 0.33
+                    alpha3 = 0.33
+                else:
+                  alpha1 = 0.33
+                  alpha2 = 0.33
+                  alpha3 = 0.33
+              else:
+                alpha1 = 0.33
+                alpha2 = 0.33
+                alpha3 = 0.33
+            else:
+              alpha1 = 0.33
+              alpha2 = 0.33
+              alpha3 = 0.33
+          else:
+            alpha1 = 0.33
+            alpha2 = 0.33
+            alpha3 = 0.33
+
+          predictorA = frames[k][i][j-1] * alpha1
+          predictorB = frames[k][i-1][j] * alpha2
+          predictorC = frames[k][i-1][j-1] * alpha3
+
+          totalPredictor = predictorA + predictorB + predictorC
+
+          frames[k][i][j] = frames[k][i][j] + totalPredictor
+          frames[k][i][j] = int(round(frames[k][i][j]))
+
+
+  for k in range(0, frameCount):
+    for i in range (0, 10):
+      for j in range(0, 10):
+        outfile.write(str(frames[k][i][j]))
+        outfile.write(" ")
+    outfile.write("\n")
+
+  newFrames = np.array(frames)
+
+  outfile.flush()
+  outfile.close()
+  print "\nOutput saved to {0}\n".format(output_file_name)
+  return newFrames
+
+
+def decodeVideoSPC(frames,fullPath,width,height,outputVideoFileName):
+  size = len(frames)
+  frameRate=30
+  fourcc=-1
+
+  cap = cv2.VideoCapture(fullPath)
+  outVideoFile=None
+  if cap.isOpened:
+    if cv2.__version__=='3.0.0':
+      frameRate=cap.get(cv2.CAP_PROP_FPS)
+      fourcc=cap.get(cv2.CAP_PROP_FOURCC)
+    else:
+      frameRate=cap.get(cv2.cv.CV_CAP_PROP_FPS)
+      fourcc=cap.get(cv2.cv.CV_CAP_PROP_FOURCC)
+
+  #fourcc = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
+  #fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+  #fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V')
+
+  outVideoFile = cv2.VideoWriter(outputVideoFileName, int(fourcc), frameRate,(width,height))
+  for x in range(0,size):
+      frame=np.array(frames[x], dtype=np.uint8)
+      u=np.ones((width,height), dtype=np.uint8)*128
+      v=np.ones((width,height), dtype=np.uint8)*128
+      yuvImage=cv2.merge((frame,u,v))
+      rgbImage = cv2.cvtColor(yuvImage, cv2.COLOR_YUV2BGR)
+      cv2.imshow("Decoded Y channel",rgbImage)
+      outVideoFile.write(rgbImage)
+      c = cv2.waitKey(1)
+      if 'q' == chr(c & 255):
+        break
+  outVideoFile.release()
+  cv2.destroyAllWindows()
+
+
+
+def spatialDecode(inputFileName):
+
+  width=10
+  height=10
+  fileSuffix=".mp4"
+  videoDir = raw_input("Enter the video file directory:\n")
+  videoFileName=raw_input("Enter the video file name:\n")
+  optionNumberList=inputFileName.split('_')
+  optionNumber=optionNumberList[1]
+  if _platform == "linux" or _platform == "linux2":
+    slash = '/'
+  elif _platform == "darwin":
+    slash = '/'
+  elif _platform == "win32":
+    slash = '\\'
+  fullPath = r'{0}{2}{1}'.format(videoDir,videoFileName+fileSuffix,slash)
+
+  outputFileName=r'{0}_{1}_out{2}'.format(videoFileName,optionNumber,fileSuffix)
+
+  frames= None
+
+  txt_file_name =optionNumberList[0]
+
+  option_number=optionNumber
+
+  output_file_name=r'{0}_{1}_decoded.txt'.format(txt_file_name,optionNumber)
+
+  count = 0
+
+  Frames = []
+
+  with open(inputFileName) as openfileobject:
+    for line in openfileobject:
+      frame = []
+      for char in line.split():
+        if int(optionNumber) == 5:
+          number = float(char)
+        else:
+          number = int(char)
+        frame.append(number)
+        count = count + 1
+        #print number
+      Frames.append(frame)
+
+  numFrames = count/100
+
+  newFrames = []
+
+  for k in range(0, numFrames):
+    frame = Frames[k]
+    newframe = []
+    for i in range(0, 10):
+      row = []
+      multiplier = i*10
+      for j in range(0, 10):
+        row.append(frame[multiplier+j])
+      newframe.append(row)
+    newFrames.append(newframe)
+
+  finalFrames = []
+
+  if option_number == '1':
+    finalFrames = spatialPredictiveDecodingOption1(newFrames, output_file_name)
+  elif option_number == '2':
+    finalFrames = spatialPredictiveDecodingOption2(newFrames, output_file_name)
+  elif option_number == '3':
+    finalFrames = spatialPredictiveDecodingOption3(newFrames, output_file_name)
+  elif option_number == '4':
+    finalFrames = spatialPredictiveDecodingOption4(newFrames, output_file_name)
+  elif option_number == '5':
+    finalFrames = spatialPredictiveDecodingOption5(newFrames, output_file_name)
+  else:
+    print "Input not valid"
+    quit()
+
+  if finalFrames != None:
+    decodeVideoSPC(finalFrames,fullPath,width,height,outputFileName)
 
 main()
