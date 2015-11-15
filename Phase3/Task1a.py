@@ -4,6 +4,7 @@ import sys
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import collections
 from sys import platform as _platform
 
 def main():
@@ -16,66 +17,92 @@ def main():
   elif _platform == "win32":
     slash = '\\'
   fileSuffix=".mp4"
-  videoDir = raw_input("Enter the video file directory:\n")
-  videoFileName = raw_input("Enter the video file name:\n")
+  #videoDir = raw_input("Enter the video file directory:\n")
+  #videoFileName = raw_input("Enter the video file name:\n")
+  #numOfBits=int(raw_input("Enter number of bits:\n"))
+  numOfBits=8
+  videoDir=r'F:\ASU_Projects\MIS\mis\Phase1\sampleDataP1'
+  videoFileName='1'
   fullPath = '{0}{2}{1}'.format(videoDir,videoFileName+fileSuffix,slash)
-  frames = extract_video_portion(fullPath,xMin,yMin,width,height)
+  outFileName='{0}_hist_{1}.hst'.format(videoFileName,numOfBits)
+  extract_video_portion(fullPath,width,height,numOfBits,outFileName)
 
 
-def extract_video_portion(fullPath,width,height):
+def quantize(yChannel,numOfBits,frameId,blocksCoordinate,outfile):
+
+    numOfPartitions = 2 ** numOfBits
+    signal= yChannel.tolist()[0]
+    #signal=[1,2,3,4,5,6,7,8,9]
+    maxValue = max(signal)
+    minValue = min(signal)
+    partitionSize = (maxValue - minValue)/float(numOfPartitions)
+    partitions=None
+    if partitionSize != 0 :
+      partitions = np.arange(minValue, maxValue+partitionSize, partitionSize)
+    else :
+      partitions = np.ones(numOfPartitions+1) * minValue
+
+    binIndexes=np.digitize(np.array(signal),partitions)
+    representative=[]
+    for value in range(1,len(partitions)):
+      representative.append(partitions[value-1]/float(2)+partitions[value]/float(2))
+
+    quantized=[]
+
+    for i in binIndexes.tolist():
+      index=0
+      if i-1 >= len(representative):
+        index= i-2
+      else:
+        index=i-1
+      quantized.append(int(representative[index]))
+
+    frequency_list=collections.Counter(quantized)
+
+    for idx,value in enumerate(frequency_list.keys()):
+      freq_val = frequency_list[value]
+      outfile.write('{0},{1},{2},{3}'.format(frameId,blocksCoordinate,value,freq_val))
+
+
+
+def extract_video_portion(fullPath,width,height,numOfBits,outFileName):
   frames = None
   frameWidth=None
   frameHeight=None
-
-
+  outfile = open( outFileName,'w' )
 
   cap = cv2.VideoCapture(fullPath)
 
   if cap.isOpened == None:
     return frames
   if cv2.__version__=='3.0.0':
-    frameWidth=cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    frameHeight=cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    frameWidth=int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frameHeight=int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
   else:
-    frameWidth=cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)
-    frameHeight=cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)
+    frameWidth=int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
+    frameHeight=int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
 
   frameId=0
+  count=0
+  frames={}
 
   while cap.isOpened:
     success, img = cap.read()
     if success == True :
-      xMin=0
-      yMin=0
-      #cropImg = img[yMin:yMax,xMin:xMax]
       yuvImage = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
       y,u,v=cv2.split(yuvImage)
-      for i in range(0,frameWidth):
-        for j in range(0,frameHeight):
-          xMax = xMin+width
-          yMax = yMin+height
-          if xMax<=frameHeight && yMax<=frameWidth:
-            y88 = y[yMin:yMax,xMin:xMax]
-            print y88.flat
-          else:
-            y88 = y[yMin:frameWidth,xMin:frameHeight]
-            print y88.flat
-            c = cv2.waitKey(0)
-            if 'q' == chr(c & 255):
-              cv2.destroyAllWindows()
-
-          print '{0},{1},{2},{3}'.format(frameId,xMin,yMin,)
-          xMin=xMax
-          yMin=yMax
+      blocksCoordinates={}
+      for i in range(0,frameWidth,width):
+        for j in range(0,frameHeight,height):
+          yChannel=y[j:j+height,i:i+width]
+          count+=1
+          blocksCoordinate='{0},{1}'.format(i,j)
+          flatYChannel = np.reshape(yChannel,(1,width*height))
+          quantize(flatYChannel,numOfBits,frameId,blocksCoordinate,outfile)
 
       frameId=frameId+1
 
-      if frames == None:
-        frames=np.array([y])
-      else:
-        frames=np.concatenate((frames,np.array([y])),axis=0)
-    else:
-      cap.release()
-      break
-  cv2.destroyAllWindows()
-  return frames
+  outfile.flush()
+  outfile.close()
+
+main()
