@@ -22,9 +22,9 @@ def main():
   #numOfBits=int(raw_input("Enter number of bits:\n"))
   numOfBits=8
   videoDir=r'F:\ASU_Projects\MIS\mis\Phase1\sampleDataP1'
-  videoFileName='6'
+  videoFileName='1'
   fullPath = '{0}{2}{1}'.format(videoDir,videoFileName+fileSuffix,slash)
-  outFileName='{0}_hist_{1}.hst'.format(videoFileName,numOfBits)
+  outFileName='{0}_diff_{1}.dhc'.format(videoFileName,numOfBits)
   extract_video_portion(fullPath,width,height,numOfBits,outFileName)
 
 
@@ -61,7 +61,7 @@ def quantize(yChannel,numOfBits,frameId,blocksCoordinate,outfile):
 
     for idx,value in enumerate(frequency_list.keys()):
       freq_val = frequency_list[value]
-      outfile.write('{0},{1},{2},{3}'.format(frameId,blocksCoordinate,value,freq_val))
+      outfile.write("{0},{1},{2},{3}\n".format(frameId,blocksCoordinate,value,freq_val))
 
 
 
@@ -85,26 +85,32 @@ def extract_video_portion(fullPath,width,height,numOfBits,outFileName):
   frameId=0
   count=0
   frames={}
-
+  prevFrame=None
   while cap.isOpened:
     success, img = cap.read()
     if success == True :
       yuvImage = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
       y,u,v=cv2.split(yuvImage)
       blocksCoordinates={}
-      for i in range(0,frameWidth,width):
-        for j in range(0,frameHeight,height):
-          yChannel=y[j:j+height,i:i+width]
-          count+=1
-          blocksCoordinate='{0},{1}'.format(i,j)
-          flatYChannel = np.reshape(yChannel,(1,width*height))
-          quantize(flatYChannel,numOfBits,frameId,blocksCoordinate,outfile)
+      if frameId==0:
+        prevFrame=y
+        frameId=frameId+1
+        continue
+      else:
+        for i in range(0,frameWidth,width):
+          for j in range(0,frameHeight,height):
+            yChannel=y[j:j+height,i:i+width]
+            prevFrameYChannel=prevFrame[j:j+height,i:i+width]
+            count+=1
+            diffYChannel=cv2.absdiff(yChannel,prevFrameYChannel)
+            blocksCoordinate='{0},{1}'.format(i,j)
+            flatYChannel = np.reshape(diffYChannel,(1,width*height))
+            quantize(flatYChannel,numOfBits,frameId-1,blocksCoordinate,outfile)
 
       frameId=frameId+1
       outfile.flush()
     else:
       break
-
   outfile.close()
 
 main()
