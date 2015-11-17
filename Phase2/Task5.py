@@ -1,8 +1,6 @@
 import sys
 import cv2
 import numpy as np
-import lzw
-import arcode
 from sys import platform as _platform
 import os
 import math
@@ -85,7 +83,7 @@ def get_file(full_path, compression_model_code, input_image, input_key):
       input_key.append(tuple(map(int,i.split())))
 
     input_key=input_key[:len(input_key)-1]
-  elif compression_model_code=='5':
+  elif compression_model_code=='3':
     for line in inFile:
       if count==0:
         temp=line.split(',')
@@ -97,7 +95,7 @@ def get_file(full_path, compression_model_code, input_image, input_key):
     for i in temp:
       input_key.append(tuple(map(int,i.split())))
 
-  elif compression_model_code=='6':
+  elif compression_model_code=='4':
     for line in inFile:
       if count==0:
         temp=line.split(',')
@@ -268,6 +266,7 @@ def arithmetic_decompression(input_image, input_key, arith_freq_list, output_ima
         row = input_image[i]                            # extract each row
         row_code = 0.0
         rowstring=row[0]
+        newWidth=0
         for h in range(len(rowstring)):                         # traverse the row
             if  rowstring[h]== '1':                           # if the next bit is 1
                 x = h + 1                             # adjust the index to start at 1 instead of 0
@@ -304,6 +303,12 @@ def main():
   arith_freq_list = []    # initialize arithmetic frequency list
   output_image = []     # initialize output image
 
+  if _platform == "linux" or _platform == "linux2":
+    slash = '/'
+  elif _platform == "darwin":
+    slash = '/'
+  elif _platform == "win32":
+    slash = '\\'
 
   # Get selection from user input
   selection_code = raw_input("""***File Viewer***\n
@@ -318,7 +323,7 @@ def main():
     file_dir = raw_input("Enter the path of the file:\n")
     print 'The image file will be read from %s directory' % file_dir
     file_name = raw_input("Enter the image file name:\n")
-    full_path = r'{0}\{1}'.format(file_dir,file_name)
+    full_path = r'{0}{2}{1}'.format(file_dir,file_name,slash)
 
 
   #full_path=r'1_1_1_3.tpv'
@@ -351,24 +356,17 @@ def main():
     output_image = shannon_fano_decompression(input_image, input_key, symbol_dictionary, output_image)    # create the output image using the symbol dictionary
     create_out_file_no_compression(output_image,output_file_name)
   # Dictionary/LZW encoding
-  elif compression_model_code == '5':
+  elif compression_model_code == '3':
     output_image = dictionary_lzw_decompression(input_image, input_key, string_table, output_image)     # create the output image using the symbol dictionary
     create_out_file_no_compression(output_image,output_file_name)
   # Arithmetic encoding
-  elif compression_model_code == '6':
+  elif compression_model_code == '4':
     output_image = arithmetic_decompression(input_image, input_key, arith_freq_list, output_image,width)      # create the output image code using Arithmetic encoding
     create_out_file_no_compression(output_image,output_file_name)
-  elif compression_model_code == '3':
-    decoded = open(output_file_name, 'w')
-    decoded.write(b"".join(lzw.decompress(lzw.readbytes(full_path))))
-    decoded.flush()
-    decoded.close()
-  elif compression_model_code == '4':
-    ar = arcode.ArithmeticCode(False)
-    ar.decode_file(full_path, output_file_name)
 
   else:
     print "Not valid input file"
+
   #####NEED TO FINISH#####
   # Display the image
   # Exit program
@@ -482,6 +480,8 @@ def decodeVideoTPC(frames,fullPath,width,height,outputVideoFileName,inputFileNam
       frameRate=cap.get(cv2.cv.CV_CAP_PROP_FPS)
       fourcc=cap.get(cv2.cv.CV_CAP_PROP_FOURCC)
 
+  fourcc = 828601953
+  frameRate=30
   outputFileName=inputFileName+"decoded.txt"
   outfile = open( outputFileName, 'w' )
   #fourcc = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
@@ -515,14 +515,14 @@ def tpcDecodingOption1(inFile):
     if lines==None:
       lines=np.array(list(map(int,line.split())))
     else:
-      lines=np.column_stack((lines,list(map(int,line.split()))))
+      lines=np.column_stack((lines,list(map(float,line.split()))))
   return lines
 
 
 def tpcDecodingOption2(inFile):
   lines=None
   for line in inFile:
-    encodedSignal = list(map(int,line.split()))
+    encodedSignal = list(map(float,line.split()))
     decodedSignal=[]
     for index,value in enumerate(encodedSignal):
       if index==0:
@@ -844,7 +844,8 @@ def decodeVideoSPC(frames,fullPath,width,height,outputVideoFileName):
   #fourcc = cv2.VideoWriter_fourcc('a', 'v', 'c', '1')
   #fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
   #fourcc = cv2.VideoWriter_fourcc('I', 'Y', 'U', 'V')
-
+  fourcc = 828601953
+  frameRate=30
   outVideoFile = cv2.VideoWriter(outputVideoFileName, int(fourcc), frameRate,(width,height))
   for x in range(0,size):
       frame=np.array(frames[x], dtype=np.uint8)
@@ -897,10 +898,7 @@ def spatialDecode(inputFileName):
     for line in openfileobject:
       frame = []
       for char in line.split():
-        if int(optionNumber) == 5:
-          number = float(char)
-        else:
-          number = int(char)
+        number = float(char)
         frame.append(number)
         count = count + 1
         #print number
