@@ -93,9 +93,11 @@ def visualizeFrames(fullPath,sorted_similarity,queryFrameId, prefix):
       if count1 < 10 and frameId != queryFrameId:
         if (frameId in topTen.keys()):
           cv2.imshow("{1} Frame:{0}".format(frameId,prefix),img)
+          cv2.imwrite("{1}_Frame_{0}.jpg".format(frameId,prefix),img)
           count1 +=1
       elif count2 < 1 and frameId==queryFrameId:
           cv2.imshow("{1} Query Frame:{0}".format(frameId,prefix),img)
+          cv2.imwrite("{1}_Query_Frame_{0}.jpg".format(frameId,prefix),img)
           count2 +=1
       else:
         break
