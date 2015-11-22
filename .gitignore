@@ -58,6 +58,11 @@ target/
 
 Phase1/sampleDataP1/*
 Phase1/sampleDataP2/*
-Phase1/*.jpg
+*.hst
+*.bct
+*.dhc
+*.bwt
+*.fwt
+*.jpg
 Phase1/*.txt
 Phase1/*.txt_bins
