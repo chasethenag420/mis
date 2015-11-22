@@ -2,19 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c7e26c74-d32e-468f-98ac-ec099153bc8c" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Phase3/reducedSizeVideo/R1.mp4" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Phase3/reducedSizeVideo/R2.mp4" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Phase3/reducedSizeVideo/R3.mp4" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Phase3/R1_hist_1.hst" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Phase3/Task1b.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Phase3/Task3.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Phase2/1_2.spc" afterPath="$PROJECT_DIR$/Phase2/1_2.spc" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Phase2/1_2.tpc" afterPath="$PROJECT_DIR$/Phase2/1_2.tpc" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Phase2/1_2_1.spq" afterPath="$PROJECT_DIR$/Phase2/1_2_1.spq" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Phase2/1_2_1.tpq" afterPath="$PROJECT_DIR$/Phase2/1_2_1.tpq" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Phase3/Task1a.py" afterPath="$PROJECT_DIR$/Phase3/Task1a.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Phase3/Task1d.py" afterPath="$PROJECT_DIR$/Phase3/Task1d.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Phase3/Task3.py" afterPath="$PROJECT_DIR$/Phase3/Task3.py" />
     </list>
     <ignored path="mis.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -63,7 +51,7 @@
         <entry file="file://$PROJECT_DIR$/Phase3/Task3.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="115" column="2" selection-start-line="115" selection-start-column="2" selection-end-line="115" selection-end-column="2" />
+              <caret line="117" column="28" selection-start-line="117" selection-start-column="28" selection-end-line="117" selection-end-column="28" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
               </folding>
@@ -113,10 +101,10 @@
         <option value="$PROJECT_DIR$/Phase2/Task3.py" />
         <option value="$PROJECT_DIR$/Phase2/Task4.py" />
         <option value="$PROJECT_DIR$/Phase2/Task5.py" />
-        <option value="$PROJECT_DIR$/Phase3/Task3.py" />
         <option value="$PROJECT_DIR$/Phase3/Task1d.py" />
         <option value="$PROJECT_DIR$/Phase3/Task1a.py" />
         <option value="$PROJECT_DIR$/Phase3/Task1b.py" />
+        <option value="$PROJECT_DIR$/Phase3/Task3.py" />
       </list>
     </option>
   </component>
@@ -468,8 +456,8 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-9" y="-9" width="1938" height="1048" extended-state="7" />
-    <editor active="true" />
+    <frame x="-9" y="-9" width="1938" height="1048" extended-state="6" />
+    <editor active="false" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1390625" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
@@ -478,11 +466,11 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32936078" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2979415" sideWeight="0.49791667" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2979415" sideWeight="0.49791667" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.38773274" sideWeight="0.496875" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.38678223" sideWeight="0.496875" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -504,6 +492,18 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/Phase3/Task3.py</url>
+          <line>63</line>
+          <option name="timeStamp" value="69" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/Phase3/Task3.py</url>
+          <line>36</line>
+          <option name="timeStamp" value="70" />
+        </line-breakpoint>
+      </breakpoints>
       <default-breakpoints>
         <breakpoint suspend="NONE" type="python-exception">
           <properties notifyOnTerminate="true" exception="BaseException">
@@ -511,7 +511,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="68" />
+      <option name="time" value="71" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -935,7 +935,17 @@
     <entry file="file://$PROJECT_DIR$/Phase3/Task3.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="115" column="2" selection-start-line="115" selection-start-column="2" selection-end-line="115" selection-end-column="2" />
+          <caret line="117" column="28" selection-start-line="117" selection-start-column="28" selection-end-line="117" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#10#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phase3/Task1a.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="110" column="2" selection-start-line="110" selection-start-column="2" selection-end-line="110" selection-end-column="2" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
           </folding>
@@ -948,16 +958,6 @@
           <caret line="118" column="2" selection-start-line="118" selection-start-column="2" selection-end-line="118" selection-end-column="2" />
           <folding>
             <element signature="e#1#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Phase3/Task1a.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="110" column="2" selection-start-line="110" selection-start-column="2" selection-end-line="110" selection-end-column="2" />
-          <folding>
-            <element signature="e#0#10#0" expanded="true" />
           </folding>
         </state>
       </provider>

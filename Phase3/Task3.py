@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
   videoDir = raw_input("Enter the video file directory:\n")
   videoFileName = raw_input("Enter the video file name:\n")
-  frameId=raw_input("Enter the frame id:\n");
+  frameId=int(raw_input("Enter the frame id:\n"));
   numOfBits=int(raw_input("Enter number of bits n:\n"))
   numOfSignComp=int(raw_input("Enter number of Significant Components m:\n"))
 
