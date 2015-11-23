@@ -1,7 +1,8 @@
-__author__ = 'Monken'
 import cv2
 import collections
 from sys import platform as _platform
+__author__ = 'Monken'
+
 
 # Transform an height by width pixel block using Discrete Wavelet Transform
 def block_dwt_transform(y_channel, height, width, num_components, frame_id, block_coordinates, out_file):
@@ -50,7 +51,6 @@ def block_dwt_transform(y_channel, height, width, num_components, frame_id, bloc
 
 def extract_video(full_path, blck_height, blck_width, num_components, out_file_name):
   frames = None
-  frame_id = 0
   out_file = open(out_file_name, 'w')
   cap = cv2.VideoCapture(full_path)
   if cap.isOpened == None:
@@ -62,20 +62,15 @@ def extract_video(full_path, blck_height, blck_width, num_components, out_file_n
     frame_width = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
   frame_id = 0
-  #count = 0
-  #frames = {}
   while cap.isOpened:
     success, img = cap.read()
     if success:
       yuv_image = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
       y, u, v = cv2.split(yuv_image)
-      #block_coordinates = {}
       for i in range(0,frame_width, blck_width):
         for j in range(0,frame_height, blck_height):
           y_channel = y[j:j+blck_height, i:i+blck_width]
-          #count += 1
           block_coordinates = '{0},{1}'.format(i, j)
-          #print block_coordinates
           block_dwt_transform(y_channel, blck_height, blck_width, num_components, frame_id, block_coordinates, out_file)
       frame_id += 1
       out_file.flush()
@@ -93,12 +88,12 @@ if __name__ == "__main__":
   elif _platform == "win32":
     slash = '\\'
   file_suffix = ".mp4"
-  video_dir = raw_input("Enter the video file directory:\n")
-  video_file_name = raw_input("Enter the video file name:\n")
-  num_components = int(raw_input("Enter number of significant wavelet components:\n"))
-  #video_dir = r'F:\\GitHub\\mis\\Phase3'      # for testing
-  #video_file_name = 'R3'                      # for testing
-  #num_components = 8                          # for testing
+  #video_dir = raw_input("Enter the video file directory:\n")
+  #video_file_name = raw_input("Enter the video file name:\n")
+  #num_components = int(raw_input("Enter number of significant wavelet components:\n"))
+  video_dir = r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'      # for testing
+  video_file_name = 'R3'                                        # for testing
+  num_components = 4                                            # for testing
   block_height = 8
   block_width = 8
   full_path = '{0}{2}{1}'.format(video_dir, video_file_name + file_suffix, slash)
