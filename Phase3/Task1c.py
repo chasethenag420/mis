@@ -88,12 +88,12 @@ if __name__ == "__main__":
   elif _platform == "win32":
     slash = '\\'
   file_suffix = ".mp4"
-  #video_dir = raw_input("Enter the video file directory:\n")
-  #video_file_name = raw_input("Enter the video file name:\n")
-  #num_components = int(raw_input("Enter number of significant wavelet components:\n"))
-  video_dir = r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'      # for testing
-  video_file_name = 'R3'                                        # for testing
-  num_components = 4                                            # for testing
+  video_dir = raw_input("Enter the video file directory:\n")
+  video_file_name = raw_input("Enter the video file name:\n")
+  num_components = int(raw_input("Enter number of significant wavelet components:\n"))
+  #video_dir = r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'      # for testing
+  #video_file_name = 'R3'                                        # for testing
+  #num_components = 4                                            # for testing
   block_height = 8
   block_width = 8
   full_path = '{0}{2}{1}'.format(video_dir, video_file_name + file_suffix, slash)

@@ -261,12 +261,12 @@ if __name__ == "__main__":
   elif _platform == "win32":
     slash = '\\'
   fileSuffix=".mp4"
-  #videoDir = raw_input("Enter the video file directory:\n")
-  #videoFileName = raw_input("Enter the video file name:\n")
-  #numOfBits=int(raw_input("Enter number of bits:\n"))
-  numOfBits=4
-  videoDir=r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'
-  videoFileName='R1'
+  videoDir = raw_input("Enter the video file directory:\n")
+  videoFileName = raw_input("Enter the video file name:\n")
+  numOfBits=int(raw_input("Enter number of bits:\n"))
+  #numOfBits=4
+  #videoDir=r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'
+  #videoFileName='R1'
   fullPath = '{0}{2}{1}'.format(videoDir, videoFileName+fileSuffix, slash)
   a_outFileName='{0}_hist_{1}.hst'.format(videoFileName,numOfBits)
   b_outFileName = '{0}_blockdct_{1}.bct'.format(videoFileName, numOfBits)
