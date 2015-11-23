@@ -1,7 +1,9 @@
 import cv2
 import Task1a
 import Task1b
+import Task1c
 import Task1d
+import Task2
 import numpy as np
 from sys import platform as _platform
 import numpy.linalg as la
@@ -140,10 +142,18 @@ if __name__ == "__main__":
       Task1b.extract_video_portion(fullPath, width, height, numOfBits, outFileName)
       sorted_similarity=getSimilarFrames(outFileName, frameId)
       visualizeFrames(fullPath, sorted_similarity, frameId, "Task1b")
+    elif task_name == '1c':
+      Task1c.extract_video(fullPath, width, height, numOfSignComp, outFileName)
+      sorted_similarity=getSimilarFrames(outFileName, frameId)
+      visualizeFrames(fullPath, sorted_similarity, frameId, "Task1c")
     elif task_name == '1d':
       Task1d.extract_video_portion(fullPath, width, height, numOfBits, outFileName)
       sorted_similarity=getSimilarFrames(outFileName, frameId)
       visualizeFrames(fullPath, sorted_similarity, frameId, "Task1d")
+    elif task_name == '2':
+      Task2.extract_video(fullPath, numOfSignComp, outFileName)
+      sorted_similarity=getSimilarFrames(outFileName, frameId)
+      visualizeFrames(fullPath, sorted_similarity, frameId, "Task2")
 
 
   c = cv2.waitKey(0)
