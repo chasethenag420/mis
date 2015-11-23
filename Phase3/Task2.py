@@ -4,24 +4,7 @@ import collections
 from sys import platform as _platform
 
 
-def main():
-  slash = '\''
-  if _platform == "linux" or _platform == "linux2":
-    slash = '/'
-  elif _platform == "darwin":
-    slash = '/'
-  elif _platform == "win32":
-    slash = '\\'
-  file_suffix = ".mp4"
-  video_dir = raw_input("Enter the video file directory:\n")
-  video_file_name = raw_input("Enter the video file name:\n")
-  num_components = int(raw_input("Enter number of significant wavelet components:\n"))
-  #video_dir = r'F:\\GitHub\\mis\\Phase3'      # for testing
-  #video_file_name = 'R3'                      # for testing
-  #num_components = 8                          # for testing
-  full_path = '{0}{2}{1}'.format(video_dir, video_file_name + file_suffix, slash)
-  out_file_name = '{0}_framedwt_{1}.fwt'.format(video_file_name, num_components)
-  extract_video(full_path, num_components, out_file_name)
+
 
 
 # Transform an height by width pixel block using Discrete Wavelet Transform
@@ -94,5 +77,21 @@ def extract_video(full_path, num_components, out_file_name):
       break
   out_file.close()
 
-
-main()
+if __name__ == "__main__":
+  slash = '\''
+  if _platform == "linux" or _platform == "linux2":
+    slash = '/'
+  elif _platform == "darwin":
+    slash = '/'
+  elif _platform == "win32":
+    slash = '\\'
+  file_suffix = ".mp4"
+  video_dir = raw_input("Enter the video file directory:\n")
+  video_file_name = raw_input("Enter the video file name:\n")
+  num_components = int(raw_input("Enter number of significant wavelet components:\n"))
+  #video_dir = r'F:\\GitHub\\mis\\Phase3'      # for testing
+  #video_file_name = 'R3'                      # for testing
+  #num_components = 8                          # for testing
+  full_path = '{0}{2}{1}'.format(video_dir, video_file_name + file_suffix, slash)
+  out_file_name = '{0}_framedwt_{1}.fwt'.format(video_file_name, num_components)
+  extract_video(full_path, num_components, out_file_name)
