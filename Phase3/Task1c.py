@@ -1,58 +1,109 @@
 import cv2
-import collections
+import math
 from sys import platform as _platform
 __author__ = 'Monken'
 
 
+def haar_transform(input_block):
+  haar_coeff = 0.7071
+  size = len(input_block)
+  top_half = []
+  bottom_half = []
+  for i in range(0, size-1, 2):
+    output_row1_left = []
+    output_row1_right = []
+    output_row2_left = []
+    output_row2_right = []
+    row1 = input_block[i]
+    row2 = input_block[i+1]
+    for j in range(0, size-1, 2):
+      top_left = haar_coeff**2 * (row1[j] + row1[j+1] + row2[j] + row2[j+1])
+      top_right = haar_coeff**2 * (row1[j] - row1[j+1] + row2[j] - row2[j+1])
+      bottom_left = haar_coeff**2 * (row1[j] + row1[j+1] - row2[j] - row2[j+1])
+      bottom_right = haar_coeff**2 * (row1[j] - row1[j+1] - row2[j] + row2[j+1])
+      if not output_row1_left:                             # build left half of top
+        output_row1_left = [top_left]
+      else:
+        output_row1_left.append(top_left)
+      if not output_row1_right:                            # build right half of top
+        output_row1_right = [top_right]
+      else:
+        output_row1_right.append(top_right)
+      if not output_row2_left:                             # build left half of bottom
+        output_row2_left = [bottom_left]
+      else:
+        output_row2_left.append(bottom_left)
+      if not output_row2_right:                            # build right half of bottom
+        output_row2_right = [bottom_right]
+      else:
+        output_row2_right.append(bottom_right)
+    output_row1 = output_row1_left + output_row1_right
+    if not top_half:                                       # build top half
+      top_half = [output_row1]
+    else:
+      top_half.append(output_row1)
+    output_row2 = output_row2_left + output_row2_right
+    if not bottom_half:                                    # build bottom half
+      bottom_half = [output_row2]
+    else:
+      bottom_half.append(output_row2)
+  block = top_half + bottom_half                           # build transform block
+  return block
+
+
 # Transform an height by width pixel block using Discrete Wavelet Transform
-def block_dwt_transform(y_channel, height, width, num_components, frame_id, block_coordinates, out_file):
+def block_dwt_transform(y_channel, size, num_comp, frame_id, block_coordinates, out_file):
+  y_channel = y_channel.astype(float)
   input_frame = y_channel.tolist()                # translate the Y channel numpy array to a python list
-  row_transform = []                              # for storing for results of row transform
-  k = 0                                           # counter for column transform operation
-  for i in range(height):
-    row = input_frame[i]
-    output_row = []                               # empty the 1st half of the output row to build the next transform row
-    output_row2 = []                              # empty the 2nd half of the output row to build the next transform row
-    for j in range(0, width-1, 2):                # traverse the row in steps of 2
-      avg_val = (row[j] + row[j+1]) / 2           # determine the average of the current and the next values
-      diff_val = (row[j] - row[j+1]) / 2          # determine the difference of the current and next values
-      if not output_row:                          # if the first half of the output row is empty
-        output_row = [avg_val]                    # set it to the average value
-      else:                                       # otherwise
-        output_row.append(avg_val)                # add the average value to the first half of the output row
-      if not output_row2:                         # if the second half of the output row is empty
-        output_row2 = [diff_val]                  # set it to the diff value
-      else:                                       # otherwise
-       output_row2.append(diff_val)               # add the diff value to the second half of the output row
-    output_row = output_row + output_row2         # concatenate the first and second halves of the output row
-    if not row_transform:                         # if the row transform block is empty
-      row_transform = [output_row]                # set it to the output row
-    else:                                         # otherwise
-      row_transform.append(output_row)            # add the output row to it
-  transform_block = [[0 for x in range(width)] for x in range(height)]   # create a hght x wdth output array
-  for i in range(0, height-1, 2):           # traverse the row transformed block in steps of 2
-    row1 = row_transform[i]                       # get the 1st input column value
-    row2 = row_transform[i + 1]                   # get the 2nd input column value
-    row1a = transform_block[k]                    # get the 1st half of output column
-    row5 = transform_block[k + (height/2)]  # get the 2nd half of output column
-    for j in range(width):                  # traverse the group by column
-      row1a[j] = (row1[j] + row2[j]) / 2          # set the 1st half of column to the average of the values
-      row5[j] = (row1[j] - row2[j]) / 2           # set the 2nd half of column to the difference of the values
-    k += 1
-  flattened_block = [item for sublist in transform_block for item in sublist]   # flatten the transform block
-  frequency_list = collections.Counter(flattened_block)                         # build freq list from flattened list
-  n_freq_list = list(reversed(frequency_list.most_common()[:num_components]))   # get m most sig wavelet components
-  for i in range(len(n_freq_list)):
-    row = n_freq_list[i]
-    component_id = row[0]
-    component_freq = row[1]
-    out_file.write("{0},{1},{2},{3}\n".format(frame_id, block_coordinates, component_id, component_freq))
+  transform_block = haar_transform(input_frame)   # first haar wavelet transform
+  k = size / 2                                    # counter for rest of haar wavelet transforms
+  while k > 1:
+    input_block = []
+    for i in range(k):                            # get the next block to be transformed
+      row = transform_block[i]
+      input_row = []
+      for j in range(k):
+        if not input_row:
+          input_row = [row[j]]
+        else:
+          input_row.append(row[j])
+      if not input_block:
+        input_block = [input_row]
+      else:
+        input_block.append(input_row)
+    next_block = haar_transform(input_block)
+    for i in range(k):                            # put the transformed smaller block back into the larger block
+      row = next_block[i]
+      row1 = transform_block[i]
+      for j in range(k):
+        row1[j] = row[j]
+    k /= 2                                        # get next smaller haar wavelet transform block size
+  for i in range(len(transform_block)):
+    row = transform_block[i]
+    for j in range(len(row)):
+      row[j] = int(round(row[j], 0))
+  target_size = int(math.ceil(num_comp**0.5))     # change transform block back to rounded integers
+  x = 1
+  sig_comp_list = []
+  for i in range(target_size):
+    row = transform_block[i]
+    for j in range(target_size):
+      if not sig_comp_list:
+        sig_comp_list = ([[x, row[j]]])
+      else:
+        sig_comp_list.append([x, row[j]])
+      x += 1
+  for i in range(len(sig_comp_list)):
+    row = sig_comp_list[i]
+    comp_id = row[0]
+    comp_val = row[1]
+    out_file.write("{0},{1},{2},{3}\n".format(frame_id, block_coordinates, comp_id, comp_val))
 
 
-def extract_video(full_path, blck_height, blck_width, num_components, out_file_name):
+def extract_video(file_path, blck_height, blck_width, num_components, out_file_name):
   frames = None
   out_file = open(out_file_name, 'w')
-  cap = cv2.VideoCapture(full_path)
+  cap = cv2.VideoCapture(file_path)
   if cap.isOpened == None:
     return frames
   if cv2.__version__ == '3.0.0':
@@ -67,11 +118,11 @@ def extract_video(full_path, blck_height, blck_width, num_components, out_file_n
     if success:
       yuv_image = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
       y, u, v = cv2.split(yuv_image)
-      for i in range(0,frame_width, blck_width):
-        for j in range(0,frame_height, blck_height):
+      for i in range(0, frame_width, blck_width):
+        for j in range(0, frame_height, blck_height):
           y_channel = y[j:j+blck_height, i:i+blck_width]
           block_coordinates = '{0},{1}'.format(i, j)
-          block_dwt_transform(y_channel, blck_height, blck_width, num_components, frame_id, block_coordinates, out_file)
+          block_dwt_transform(y_channel, blck_height, num_components, frame_id, block_coordinates, out_file)
       frame_id += 1
       out_file.flush()
     else:
@@ -88,12 +139,12 @@ if __name__ == "__main__":
   elif _platform == "win32":
     slash = '\\'
   file_suffix = ".mp4"
-  video_dir = raw_input("Enter the video file directory:\n")
-  video_file_name = raw_input("Enter the video file name:\n")
-  num_components = int(raw_input("Enter number of significant wavelet components:\n"))
-  #video_dir = r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'      # for testing
-  #video_file_name = 'R3'                                        # for testing
-  #num_components = 4                                            # for testing
+  #video_dir = raw_input("Enter the video file directory:\n")
+  #video_file_name = raw_input("Enter the video file name:\n")
+  #num_components = int(raw_input("Enter number of significant wavelet components:\n"))
+  video_dir = r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'      # for testing
+  video_file_name = 'R3'                                        # for testing
+  num_components = 4                                            # for testing
   block_height = 8
   block_width = 8
   full_path = '{0}{2}{1}'.format(video_dir, video_file_name + file_suffix, slash)
