@@ -5,14 +5,9 @@ import collections
 from sys import platform as _platform
 
 
-def d_quantize(yChannel, numOfBits, frameId, blocksCoordinate, outfile):
+def quantize(yChannel, numOfBits, frameId, blocksCoordinate, outfile,maxValue,minValue):
     numOfPartitions = 2 ** numOfBits
     signal= yChannel.tolist()[0]
-    #signal=[1,2,3,4,5,6,7,8,9]
-    #maxValue = max(signal)
-    #minValue = min(signal)
-    maxValue=255
-    minValue=-255
     partitionSize = (maxValue - minValue)/float(numOfPartitions)
     partitions=None
     if partitionSize != 0:
@@ -205,43 +200,6 @@ def zigZag(u_v_Image, numOfBits, outfile, frameId, blocksCoordinate):
         r += 1
     count += 1
 
-
-def a_quantize(yChannel, numOfBits, frameId, blocksCoordinate, outfile):
-    numOfPartitions = 2 ** numOfBits
-    signal= yChannel.tolist()[0]
-    #signal=[1,2,3,4,5,6,7,8,9]
-    #maxValue = max(signal)
-    #minValue = min(signal)
-    maxValue=255
-    minValue=0
-    partitionSize = (maxValue - minValue)/float(numOfPartitions)
-    partitions=None
-    if partitionSize != 0:
-      partitions = np.arange(minValue, maxValue+partitionSize, partitionSize)
-    else :
-      partitions = np.ones(numOfPartitions+1) * minValue
-    binIndexes=np.digitize(np.array(signal),partitions)
-    representative=[]
-    for value in range(1,len(partitions)):
-      representative.append(int(partitions[value-1]/2+partitions[value]/2))
-    quantized=[]
-    for i in binIndexes.tolist():
-      index=0
-      if i-1 >= len(representative):
-        index= i-2
-      else:
-        index=i-1
-      quantized.append(int(representative[index]))
-    frequency_list=collections.Counter(quantized)
-    if len(frequency_list.keys()) != len(representative):
-      for i in representative:
-        if i not in frequency_list.keys():
-          frequency_list[i]=0
-    for idx, value in enumerate(frequency_list.keys()):
-      freq_val = frequency_list[value]
-      outfile.write("{0},{1},{2},{3}\n".format(frameId, blocksCoordinate, value, freq_val))
-
-
 def extract_video_portion(fullPath,width,height,numOfBits,a_outFileName,b_outFileName,c_outFileName,d_outFileName):
   frames = None
   frameWidth=None
@@ -260,7 +218,6 @@ def extract_video_portion(fullPath,width,height,numOfBits,a_outFileName,b_outFil
     frameWidth=int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH))
     frameHeight=int(cap.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT))
   frameId=0
-  count=0
   frames={}
   prevFrame=None
   while cap.isOpened:
@@ -269,26 +226,24 @@ def extract_video_portion(fullPath,width,height,numOfBits,a_outFileName,b_outFil
       yuvImage = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
       y,u,v=cv2.split(yuvImage)
       blocksCoordinates={}
-      if frameId==0:
-        prevFrame=y
-        frameId=frameId+1
-        continue
-      else:
-        for i in range(0,frameWidth,width):
-          for j in range(0,frameHeight,height):
-            yChannel=y[j:j+height,i:i+width]
+      for i in range(0,frameWidth,width):
+        for j in range(0,frameHeight,height):
+          yChannel=y[j:j+height,i:i+width]
+          blocksCoordinate='{0},{1}'.format(i, j)
+          blockCoordinates = (i, j)
+
+          flatYChannel = np.reshape(yChannel, (1, width*height))
+          quantize(flatYChannel,numOfBits,frameId,blocksCoordinate,a_outfile,255,0)                      # Task 1a
+          dct(yChannel, numOfBits, b_outfile, frameId, blockCoordinates)                             # Task 1b
+          block_dwt_transform(yChannel, height, numOfBits, frameId, blocksCoordinate, c_outfile)     # Task 1c
+          if frameId !=0:
             prevFrameYChannel=prevFrame[j:j+height,i:i+width]
-            count+=1
-            #diffYChannel=cv2.absdiff(yChannel,prevFrameYChannel)
             diffYChannel=cv2.subtract(yChannel.astype(np.int16),prevFrameYChannel.astype(np.int16))
-            blocksCoordinate='{0},{1}'.format(i, j)
-            blockCoordinates = (i, j)
-            flatYChannel = np.reshape(diffYChannel, (1, width*height))
             flatDiffChannel = np.reshape(diffYChannel, (1, width*height))
-            a_quantize(flatYChannel,numOfBits,frameId,blocksCoordinate,a_outfile)                      # Task 1a
-            dct(yChannel, numOfBits, b_outfile, frameId, blockCoordinates)                             # Task 1b
-            block_dwt_transform(yChannel, height, numOfBits, frameId, blocksCoordinate, c_outfile)     # Task 1c
-            d_quantize(flatDiffChannel, numOfBits, frameId-1, blocksCoordinate, d_outfile)             # Task 1d
+            quantize(flatDiffChannel, numOfBits, frameId-1, blocksCoordinate, d_outfile,255,-255)             # Task 1d
+          else:
+            prevFrame=y
+
       frameId=frameId+1
       a_outfile.flush()
       b_outfile.flush()
@@ -300,6 +255,7 @@ def extract_video_portion(fullPath,width,height,numOfBits,a_outFileName,b_outFil
   b_outfile.close()
   c_outfile.close()
   d_outfile.close()
+  cap.release()
 
 
 if __name__ == "__main__":
@@ -312,12 +268,12 @@ if __name__ == "__main__":
   elif _platform == "win32":
     slash = '\\'
   fileSuffix=".mp4"
-  #videoDir = raw_input("Enter the video file directory:\n")
-  #videoFileName = raw_input("Enter the video file name:\n")
-  #numOfBits=int(raw_input("Enter number of bits:\n"))
-  numOfBits=4
-  videoDir=r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'
-  videoFileName='R1'
+  videoDir = raw_input("Enter the video file directory:\n")
+  videoFileName = raw_input("Enter the video file name:\n")
+  numOfBits=int(raw_input("Enter number of bits:\n"))
+  #numOfBits=4
+  #videoDir=r'F:\\GitHub\\mis\\Phase3\\reducedSizeVideo'
+  #videoFileName='R1'
   fullPath = '{0}{2}{1}'.format(videoDir, videoFileName+fileSuffix, slash)
   a_outFileName='{0}_hist_{1}.hst'.format(videoFileName,numOfBits)
   b_outFileName = '{0}_blockdct_{1}.bct'.format(videoFileName, numOfBits)
