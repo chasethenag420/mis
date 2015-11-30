@@ -61,6 +61,8 @@ def getFrameById(lines,frameId,frameRowSize):
 def getSimilarFrames(outFileName,frameId):
   lines, queryFrame= getFrameData(outFileName,frameId)
   frameRowSize= len(queryFrame)
+  if frameRowSize == 0:
+    return None
   totalFrames = len(lines)/frameRowSize
   similarity={}
 
@@ -111,11 +113,14 @@ def getSimilarFramesForDiffQuantization(outFileName,fullPath,frameId,width,heigh
   lines, queryFrame= getFrameData(outFileName,frameId)
 
   frameRowSize= len(queryFrame)
+  if frameRowSize == 0:
+    return None
   totalFrames = len(lines)/frameRowSize
+
   similarity={}
   queryFrame=getVideoFrameById(fullPath,frameId)
   for currentFrameId in range(0,totalFrames-1):
-    if currentFrameId != frameId-1:
+    if currentFrameId != frameId:
       currentFrame=getFrameById(lines,currentFrameId,frameRowSize)
       currentFrame2=getFrameById(lines,currentFrameId+1,frameRowSize)
       queryDiffFrames=getQuantizedDiff(fullPath,currentFrameId,queryFrame,width,height,numOfBits)
@@ -183,6 +188,8 @@ def getVideoFrameById(fullPath,inputFrameId):
 
 
 def visualizeFrames(fullPath,sorted_similarity,queryFrameId, prefix):
+  if sorted_similarity==None:
+    return None
   topTen = dict(sorted_similarity[:10])
   for value in sorted_similarity[:10]:
     print "{2} Matching score with Frame {0}: {1}".format(value[0], value[1], prefix)
@@ -207,10 +214,12 @@ def visualizeFrames(fullPath,sorted_similarity,queryFrameId, prefix):
           cv2.imshow("{1} Query Frame:{0}".format(frameId,prefix),img)
           cv2.imwrite("{1}_Query_Frame_{0}.jpg".format(frameId,prefix),img)
           count2 +=1
-      else:
-        break
+    else:
+       break
 
     frameId += 1
+
+  cap.release()
 
 if __name__ == "__main__":
   width=8
