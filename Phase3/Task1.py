@@ -2,6 +2,8 @@ import cv2
 import math
 import numpy as np
 import collections
+import os.path
+
 from sys import platform as _platform
 
 
@@ -204,10 +206,23 @@ def extract_video_portion(fullPath,width,height,numOfBits,a_outFileName,b_outFil
   frames = None
   frameWidth=None
   frameHeight=None
-  a_outfile = open( a_outFileName,'w' )
-  b_outfile = open( b_outFileName,'w' )
-  c_outfile = open( c_outFileName,'w' )
-  d_outfile = open( d_outFileName,'w' )
+  a_outfile=None
+  b_outfile=None
+  c_outfile=None
+  d_outfile=None
+
+  if not os.path.isfile(a_outFileName):
+    a_outfile = open( a_outFileName,'w' )
+  if not os.path.isfile(b_outFileName):
+    b_outfile = open( b_outFileName,'w' )
+  if not os.path.isfile(c_outFileName):
+    c_outfile = open( c_outFileName,'w' )
+  if not os.path.isfile(d_outFileName):
+    d_outfile = open( d_outFileName,'w' )
+
+  if a_outfile==None and b_outfile==None and c_outfile==None and d_outfile==None:
+    return
+
   cap = cv2.VideoCapture(fullPath)
   if cap.isOpened == None:
     return frames

@@ -3,6 +3,7 @@ import math
 from sys import platform as _platform
 __author__ = 'Monken'
 
+import os.path
 
 def haar_transform(input_block):
   haar_coeff = 0.7071
@@ -103,7 +104,14 @@ def block_dwt_transform(y_channel, size, num_comp, frame_id, out_file):
 def extract_video(full_path, num_components, out_file_name):
   frames = None
   frame_id = 0
-  out_file = open(out_file_name, 'w')
+  out_file=None
+
+  if not os.path.isfile(out_file_name):
+    out_file = open(out_file_name, 'w')
+
+  if out_file==None:
+    return
+
   cap = cv2.VideoCapture(full_path)
   if cap.isOpened == None:
     return frames
